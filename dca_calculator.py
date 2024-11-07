@@ -4,6 +4,11 @@ import pandas as pd
 
 def resample_price_data(df: pd.DataFrame, periodicity: str) -> pd.DataFrame:
     """Resample price data according to investment frequency"""
+    # Convert date column to datetime if it's not already
+    df = df.copy()
+    df["date"] = pd.to_datetime(df["date"])
+    
+    # Set index and resample
     df = df.set_index("date")
     freq_map = {"Daily": "D", "Weekly": "W", "Monthly": "ME"}
     
