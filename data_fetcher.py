@@ -45,7 +45,7 @@ def fetch_historical_data(asset: str, start_date: datetime = None) -> pd.DataFra
         
         # If we need older data than what's cached
         if start_date < latest_date:
-            return cached_df.filter(pl.col("date") >= start_date)
+            return cached_df[cached_df["date"] >= start_date]
             
         # If we need to fetch new data
         if latest_date < datetime.now().date():
@@ -61,9 +61,9 @@ def fetch_historical_data(asset: str, start_date: datetime = None) -> pd.DataFra
                 # Combine and save updated data
                 combined_df = pd.concat([cached_df, new_df])
                 combined_df.to_parquet(cache_file)
-                return combined_df.filter(pl.col("date") >= start_date)
+                return combined_df[combined_df["date"] >= start_date]
                 
-        return cached_df.filter(pl.col("date") >= start_date)
+        return cached_df[cached_df["date"] >= start_date]
     
     # If no cache exists, fetch all data
     ticker_data = yf.Ticker(ticker)
