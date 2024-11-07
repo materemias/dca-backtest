@@ -9,54 +9,58 @@ from dca_calculator import calculate_multi_asset_dca
 def create_ui():
     st.title("DCA Investment Calculator")
     
-    # Asset selector - multiple choice
-    assets = ["BTC", "ETH", "S&P500", "NASDAQ-100"]
-    selected_assets = st.multiselect(
-        "Select assets to analyze",
-        options=assets,
-        default=["BTC"]
-    )
-    
-    # Date range selector
-    col1, col2 = st.columns(2)
-    with col1:
-        start_date = st.date_input(
-            "Start date",
-            value=date(2020, 1, 1),
-            min_value=date(2010, 1, 1),
-            max_value=date.today()
+    # Move all settings to sidebar
+    with st.sidebar:
+        st.header("Settings")
+        
+        # Asset selector - multiple choice
+        assets = ["BTC", "ETH", "S&P500", "NASDAQ-100"]
+        selected_assets = st.multiselect(
+            "Select assets to analyze",
+            options=assets,
+            default=["BTC"]
         )
-    with col2:
-        end_date = st.date_input(
-            "End date",
-            value=date.today(),
-            min_value=start_date,
-            max_value=date.today()
+        
+        # Date range selector
+        col1, col2 = st.columns(2)
+        with col1:
+            start_date = st.date_input(
+                "Start date",
+                value=date(2020, 1, 1),
+                min_value=date(2010, 1, 1),
+                max_value=date.today()
+            )
+        with col2:
+            end_date = st.date_input(
+                "End date",
+                value=date.today(),
+                min_value=start_date,
+                max_value=date.today()
+            )
+        
+        # Investment parameters
+        col3, col4 = st.columns(2)
+        with col3:
+            initial_investment = st.number_input(
+                "Initial investment ($)",
+                min_value=0,
+                value=1000,
+                step=100
+            )
+        with col4:
+            periodic_investment = st.number_input(
+                "Periodic investment ($)",
+                min_value=0,
+                value=100,
+                step=50
+            )
+        
+        # Periodicity selector
+        periodicity = st.selectbox(
+            "Investment frequency",
+            options=["Daily", "Weekly", "Monthly"],
+            index=2  # Monthly as default
         )
-    
-    # Investment parameters
-    col3, col4 = st.columns(2)
-    with col3:
-        initial_investment = st.number_input(
-            "Initial investment ($)",
-            min_value=0,
-            value=1000,
-            step=100
-        )
-    with col4:
-        periodic_investment = st.number_input(
-            "Periodic investment ($)",
-            min_value=0,
-            value=100,
-            step=50
-        )
-    
-    # Periodicity selector
-    periodicity = st.selectbox(
-        "Investment frequency",
-        options=["Daily", "Weekly", "Monthly"],
-        index=2  # Monthly as default
-    )
     
     return {
         "selected_assets": selected_assets,
