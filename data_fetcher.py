@@ -54,7 +54,7 @@ def fetch_historical_data(asset: str, start_date: datetime = None) -> pl.DataFra
             new_df = ticker_data.history(start=new_start_date)
             
             if not new_df.empty:
-                new_pl_df = pl.from_pandas(new_df).with_columns([
+                new_pl_df = pl.from_pandas(new_df.reset_index()).with_columns([
                     pl.col("Date").cast(pl.Date).alias("date")
                 ]).select([
                     "date",
@@ -77,7 +77,7 @@ def fetch_historical_data(asset: str, start_date: datetime = None) -> pl.DataFra
     df = ticker_data.history(start=start_date)
     
     # Convert to Polars and clean up
-    pl_df = pl.from_pandas(df).with_columns([
+    pl_df = pl.from_pandas(df.reset_index()).with_columns([
         pl.col("Date").cast(pl.Date).alias("date")
     ]).select([
         "date",
