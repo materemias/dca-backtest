@@ -1,6 +1,8 @@
 import streamlit as st
 import polars as pl
 from datetime import datetime, date
+import plotly.graph_objects as go
+from plotly.subplots import make_subplots
 from data_fetcher import fetch_historical_data, get_ticker_symbol
 from dca_calculator import calculate_multi_asset_dca
 
@@ -65,6 +67,83 @@ def create_ui():
         "periodicity": periodicity
     }
 
+def create_comparison_charts(asset_data: dict, results: dict, params: dict):
+    # Create investment value over time chart
+    fig1 = go.Figure()
+    
+    for asset in asset_data.keys():
+        df = asset_data[asset]
+        # Calculate cumulative investment line
+        dates = df['date']
+        investment_line = [params['initial_investment']] * len(dates)
+        for i in range(1, len(dates)):
+            investment_line[i] = investment_line[i-1] + params['periodic_investment']
+            
+        # Add investment line
+        fig1.add_trace(go.Scatter(
+            x=dates,
+            y=investment_line,
+            name=f"{asset} - Investment",
+            line=dict(dash='dash')
+        ))
+        
+        # Add value line
+        value_line = df['Close'] * results[asset]['total_units']
+        fig1.add_trace(go.Scatter(
+            x=dates,
+            y=value_line,
+            name=f"{asset} - Value"
+        ))
+    
+    fig1.update_layout(
+        title="Investment vs. Value Over Time",
+        xaxis_title="Date",
+        yaxis_title="Value ($)",
+        hovermode='x unified'
+    )
+    
+    # Create performance comparison chart
+    fig2 = go.Figure()
+    
+    performance_data = {
+        'Asset': [],
+        'Total Investment': [],
+        'Final Value': [],
+        'Absolute Gain': [],
+        'Percentage Gain': []
+    }
+    
+    for asset, metrics in results.items():
+        performance_data['Asset'].append(asset)
+        performance_data['Total Investment'].append(metrics['total_investment'])
+        performance_data['Final Value'].append(metrics['final_value'])
+        performance_data['Absolute Gain'].append(metrics['absolute_gain'])
+        performance_data['Percentage Gain'].append(metrics['percentage_gain'])
+    
+    # Add bars for investment and final value
+    fig2.add_trace(go.Bar(
+        name='Total Investment',
+        x=performance_data['Asset'],
+        y=performance_data['Total Investment'],
+        marker_color='lightgray'
+    ))
+    
+    fig2.add_trace(go.Bar(
+        name='Final Value',
+        x=performance_data['Asset'],
+        y=performance_data['Final Value'],
+        marker_color='lightgreen'
+    ))
+    
+    fig2.update_layout(
+        title="Investment Performance Comparison",
+        barmode='group',
+        yaxis_title="Value ($)",
+        hovermode='x unified'
+    )
+    
+    return fig1, fig2
+
 def main():
     st.set_page_config(
         page_title="DCA Calculator",
@@ -84,8 +163,15 @@ def main():
         # Calculate DCA metrics for all assets
         results = calculate_multi_asset_dca(asset_data, params)
         
-        # Display results
-        st.header("DCA Investment Results")
+        # Create and display charts
+        fig1, fig2 = create_comparison_charts(asset_data, results, params)
+        
+        # Display charts
+        st.plotly_chart(fig1, use_container_width=True)
+        st.plotly_chart(fig2, use_container_width=True)
+        
+        # Display detailed metrics
+        st.header("Detailed Results")
         
         for asset, metrics in results.items():
             with st.expander(f"{asset} Results", expanded=True):
@@ -99,10 +185,6 @@ def main():
                 with col3:
                     st.metric("Percentage Gain", f"{metrics['percentage_gain']:,.2f}%")
                     st.metric("Avg Monthly Gain", f"{metrics['monthly_gain']:,.2f}%")
-                
-                # Show data preview
-                st.write(f"Preview of {asset} data:")
-                st.dataframe(asset_data[asset].head())
 
 if __name__ == "__main__":
     main()
