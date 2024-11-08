@@ -43,6 +43,10 @@ def create_ui():
             <style>
                 .stMultiSelect span[data-baseweb="tag"] {
                     background-color: white;
+                    color: black !important;
+                }
+                .stMultiSelect span[data-baseweb="tag"] span {
+                    color: black !important;
                 }
             </style>
         """, unsafe_allow_html=True)
@@ -53,6 +57,10 @@ def create_ui():
             color_styles += f"""
                 .stMultiSelect span[data-baseweb="tag"]:nth-of-type({i+1}) {{
                     background-color: {color_map[ticker]} !important;
+                    color: black !important;
+                }}
+                .stMultiSelect span[data-baseweb="tag"]:nth-of-type({i+1}) span {{
+                    color: black !important;
                 }}
             """
         
