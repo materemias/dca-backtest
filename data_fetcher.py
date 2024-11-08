@@ -6,36 +6,24 @@ import pandas as pd
 import yfinance as yf
 
 
-def get_ticker_symbol(asset: str) -> str:
-    """Map asset names to their ticker symbols"""
-    ticker_mapping = {
-        "BTC": "BTC-USD",
-        "ETH": "ETH-USD",
-        "S&P500": "^GSPC",
-        "NASDAQ-100": "^NDX",
-        "WD Nasdaq 3x": "QQQ3.L",
-        "GS gold": "AAAU",
-    }
-    return ticker_mapping.get(asset)
-
-
-def get_cache_path(asset: str) -> pathlib.Path:
+def get_cache_path(ticker: str) -> pathlib.Path:
     """Get the path for cached parquet file"""
     cache_dir = pathlib.Path("cache")
     cache_dir.mkdir(exist_ok=True)
-    return cache_dir / f"{asset.lower()}_history.parquet"
+    # Replace any special characters in ticker with underscore for filename
+    safe_ticker = ticker.replace('^', '').replace('-', '_').replace('.', '_')
+    return cache_dir / f"{safe_ticker.lower()}_history.parquet"
 
 
 @lru_cache(maxsize=10)
-def fetch_historical_data(asset: str, start_date: datetime = None) -> pd.DataFrame:
+def fetch_historical_data(ticker: str, start_date: datetime = None) -> pd.DataFrame:
     """
-    Fetch daily historical data for a given asset
+    Fetch daily historical data for a given ticker
     Returns a Pandas DataFrame with columns: date, open, high, low, close, volume
     Uses both parquet caching and function memoization
     """
-    ticker = get_ticker_symbol(asset)
     if not ticker:
-        raise ValueError(f"Unknown asset: {asset}")
+        raise ValueError(f"Invalid ticker: {ticker}")
 
     # Define today at the start of the function
     today = datetime.now().date()

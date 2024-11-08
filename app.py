@@ -3,6 +3,7 @@ from datetime import date
 import pandas as pd
 import plotly.graph_objects as go
 import streamlit as st
+import yfinance as yf
 
 from data_fetcher import fetch_historical_data
 from dca_calculator import calculate_multi_asset_dca
@@ -15,9 +16,27 @@ def create_ui():
     with st.sidebar:
         st.header("Settings")
 
-        # Asset selector - multiple choice
-        assets = ["BTC", "ETH", "S&P500", "NASDAQ-100", "WD Nasdaq 3x", "GS gold"]
-        selected_assets = st.multiselect("Select assets to analyze", options=assets, default=["BTC"])
+        # Replace asset selector with ticker input
+        default_tickers = ["BTC-USD", "ETH-USD", "^GSPC", "^NDX", "QQQ3.L", "AAAU"]
+        selected_tickers = st.multiselect(
+            "Enter ticker symbols",
+            options=default_tickers,
+            default=["BTC-USD"],
+            help="Enter valid Yahoo Finance ticker symbols"
+        )
+
+        # Add Legend section
+        st.subheader("Legend")
+        for ticker in selected_tickers:
+            try:
+                # Get ticker info
+                info = yf.Ticker(ticker).info
+                # Display name in format: 'Bitcoin USD (BTC-USD)'
+                display_name = f"{info.get('longName', ticker)} ({ticker})"
+                st.text(display_name)
+            except:
+                # Fallback if info fetch fails
+                st.text(f"{ticker}")
 
         # Date range selector
         col1, col2 = st.columns(2)
@@ -51,7 +70,7 @@ def create_ui():
         )
 
     return {
-        "selected_assets": selected_assets,
+        "selected_assets": selected_tickers,  # Changed from selected_assets to selected_tickers
         "start_date": start_date,
         "end_date": end_date,
         "initial_investment": initial_investment,
