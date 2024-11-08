@@ -243,40 +243,29 @@ def create_comparison_charts(asset_data: dict, results: dict, params: dict):
 def create_price_chart(asset_data: dict, params: dict) -> go.Figure:
     """Create a price chart showing prices as percentage of all-time high"""
     fig = go.Figure()
-    
+
     for asset, df in asset_data.items():
         # Calculate all-time high for the asset
-        all_time_high = df['Close'].max()
+        all_time_high = df["Close"].max()
         # Calculate percentage of ATH
-        normalized_prices = (df['Close'] / all_time_high) * 100
-        
+        normalized_prices = (df["Close"] / all_time_high) * 100
+
         # Try to get descriptive name
         try:
             info = yf.Ticker(asset).info
             display_name = f"{info.get('longName', asset)} ({asset})"
         except:
             display_name = asset
-            
+
         # Add trace using the same color as other charts
-        fig.add_trace(go.Scatter(
-            x=df['date'],
-            y=normalized_prices,
-            name=display_name,
-            line=dict(color=params['color_map'][asset])
-        ))
-    
+        fig.add_trace(go.Scatter(x=df["date"], y=normalized_prices, name=display_name, line=dict(color=params["color_map"][asset])))
+
     fig.update_layout(
-        title="Price Performance (% of All-Time High)",
-        xaxis_title="Date",
-        yaxis_title="Percentage of All-Time High",
-        hovermode="x unified",
-        yaxis=dict(
-            tickformat=".1f",
-            ticksuffix="%"
-        )
+        title="Price Performance (% of All-Time High)", xaxis_title="Date", yaxis_title="Percentage of All-Time High", hovermode="x unified", yaxis=dict(tickformat=".1f", ticksuffix="%")
     )
-    
+
     return fig
+
 
 def main():
     st.set_page_config(page_title="DCA Calculator", page_icon="📈", layout="wide")
@@ -298,11 +287,10 @@ def main():
 
         # Display charts
         st.plotly_chart(fig1, use_container_width=True)
-        st.plotly_chart(fig2, use_container_width=True)
-        
         # Add the new price chart
         price_fig = create_price_chart(asset_data, params)
         st.plotly_chart(price_fig, use_container_width=True)
+        st.plotly_chart(fig2, use_container_width=True)
 
         # Display detailed metrics
         st.header("Detailed Results")
