@@ -105,15 +105,16 @@ def create_ui():
                 return name[:max_length-3] + "..."
             return name
 
-        for ticker in selected_tickers:
+        # Important: Use selected_formatted to maintain color consistency
+        for name in selected_formatted:  # Use selected_formatted instead of selected_tickers
+            ticker = name_to_ticker[name]  # Get the ticker from the mapping
             try:
                 info = yf.Ticker(ticker).info
                 full_name = f"{info.get('longName', ticker)} ({ticker})"
-                # Truncate the long name but keep ticker
                 truncated_name = f"{truncate_name(info.get('longName', ticker))} ({ticker})"
                 
-                # Create markdown with tooltip containing full name
-                color_rect = f'<div style="width: 20px; height: 20px; background-color: {color_map[ticker]}; margin-right: 8px;"></div>'
+                # Use the same color from color_map
+                color_rect = f'<div style="width: 20px; height: 20px; background-color: {color_map[ticker]}; display: inline-block; margin-right: 8px; vertical-align: middle;"></div>'
                 st.markdown(
                     f'''<div style="display: flex; align-items: center;" title="{full_name}">
                         {color_rect}<div>{truncated_name}</div>
