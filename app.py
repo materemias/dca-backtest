@@ -18,13 +18,15 @@ def create_ui():
         st.header("Settings")
 
         # Replace asset selector with ticker input
-        default_tickers = ["BTC-USD", "ETH-USD", "^GSPC", "^NDX", "QQQ3.L", "AAAU"]
+        if "default_tickers" not in st.session_state:
+            st.session_state.default_tickers = ["BTC-USD", "ETH-USD", "^GSPC", "^NDX", "QQQ3.L", "AAAU"]
 
         # Add a text input for new ticker with autocomplete
         new_ticker = st.text_input(
             "Add new ticker",
             placeholder="Enter Yahoo Finance ticker (e.g. AAPL)",
-            help="Enter a valid Yahoo Finance ticker symbol to add to the list"
+            help="Enter a valid Yahoo Finance ticker symbol to add to the list",
+            key="new_ticker_input"
         )
 
         # If user entered a new ticker, validate and add it
@@ -35,21 +37,25 @@ def create_ui():
                 # Just check if we can get any recent history
                 test_data = ticker_obj.history(period="1d")
                 if not test_data.empty:
-                    if new_ticker not in default_tickers:
-                        default_tickers.append(new_ticker)
+                    if new_ticker not in st.session_state.default_tickers:
+                        st.session_state.default_tickers.append(new_ticker)
                         st.success(f"Added {new_ticker} to the list!")
+                        # Clear the input field
+                        st.session_state.new_ticker_input = ""
+                    else:
+                        st.warning("This ticker is already in the list!")
                 else:
                     st.error("Invalid ticker symbol - no data available")
             except Exception as e:
                 st.error(f"Error adding ticker: {str(e)}")
 
         # Generate a color palette for all tickers
-        colors = px.colors.qualitative.Set3[: len(default_tickers)]
-        color_map = dict(zip(default_tickers, colors))
+        colors = px.colors.qualitative.Set3[: len(st.session_state.default_tickers)]
+        color_map = dict(zip(st.session_state.default_tickers, colors))
 
         # Create formatted options with colors for the multiselect
         formatted_options = []
-        for ticker in default_tickers:
+        for ticker in st.session_state.default_tickers:
             try:
                 info = yf.Ticker(ticker).info
                 display_name = f"{info.get('longName', ticker)} ({ticker})"
@@ -58,7 +64,7 @@ def create_ui():
             formatted_options.append(display_name)
 
         # Create a mapping between formatted names and actual tickers
-        name_to_ticker = dict(zip(formatted_options, default_tickers))
+        name_to_ticker = dict(zip(formatted_options, st.session_state.default_tickers))
 
         # First, select the default tickers
         selected_formatted = st.multiselect("Enter ticker symbols", options=formatted_options, default=[formatted_options[0]], help="Enter valid Yahoo Finance ticker symbols")
