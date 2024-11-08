@@ -123,9 +123,8 @@ def create_ui():
 
 
 def create_comparison_charts(asset_data: dict, results: dict, params: dict):
-    # Create color map for consistency
-    colors = px.colors.qualitative.Set3[: len(asset_data)]
-    color_map = dict(zip(asset_data.keys(), colors))
+    # Use the color map from params instead
+    color_map = params["color_map"]
 
     # Create investment value over time chart
     fig1 = go.Figure()
@@ -167,7 +166,7 @@ def create_comparison_charts(asset_data: dict, results: dict, params: dict):
         performance_data["Final Value"].append(metrics["final_value"])
         performance_data["Absolute Gain"].append(metrics["absolute_gain"])
         performance_data["Percentage Gain"].append(metrics["percentage_gain"])
-        performance_data["Color"].append(color_map[asset])
+        performance_data["Color"].append(params["color_map"][asset])
 
     # Convert to DataFrame and sort by Final Value
     perf_df = pd.DataFrame(performance_data)
