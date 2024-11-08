@@ -83,7 +83,7 @@ def fetch_historical_data(asset: str, start_date: datetime = None) -> pd.DataFra
             cached_df = cached_df.sort_values("date")
             cached_df.to_parquet(cache_file)
 
-        return cached_df[cached_df["date"] >= start_date]
+        return cached_df[(cached_df["date"] >= start_date) & (cached_df["date"] <= today)]
 
     # If no cache exists, fetch all data
     ticker_data = yf.Ticker(ticker)

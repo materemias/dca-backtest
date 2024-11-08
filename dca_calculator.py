@@ -1,4 +1,5 @@
 from typing import Dict
+from datetime import date
 
 import pandas as pd
 
@@ -16,8 +17,11 @@ def resample_price_data(df: pd.DataFrame, periodicity: str) -> pd.DataFrame:
     return df.resample(freq_map[periodicity]).agg({"Close": "last", "Volume": "sum"}).reset_index()
 
 
-def calculate_dca_metrics(df: pd.DataFrame, initial_investment: float, periodic_investment: float, periodicity: str) -> Dict:
+def calculate_dca_metrics(df: pd.DataFrame, initial_investment: float, periodic_investment: float, periodicity: str, end_date: date) -> Dict:
     """Calculate DCA investment metrics"""
+
+    # Filter data up to end_date first
+    df = df[df["date"] <= end_date].copy()
 
     # Resample data according to investment frequency
     resampled_df = resample_price_data(df, periodicity)
@@ -78,6 +82,12 @@ def calculate_multi_asset_dca(asset_data: Dict[str, pd.DataFrame], params: Dict)
     results = {}
 
     for asset, df in asset_data.items():
-        results[asset] = calculate_dca_metrics(df, params["initial_investment"], params["periodic_investment"], params["periodicity"])
+        results[asset] = calculate_dca_metrics(
+            df, 
+            params["initial_investment"], 
+            params["periodic_investment"], 
+            params["periodicity"],
+            params["end_date"]
+        )
 
     return results
