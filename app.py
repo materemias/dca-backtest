@@ -45,7 +45,7 @@ def create_ui():
                 st.markdown(f"{color_rect} {display_name}", unsafe_allow_html=True)
             except:
                 # Fallback if info fetch fails
-                st.markdown(f"{color_rect} {ticker}", unsafe_allow_html=True)
+                st.markdown(f"{ticker}", unsafe_allow_html=True)
 
         # Date range selector
         col1, col2 = st.columns(2)
@@ -85,6 +85,7 @@ def create_ui():
         "initial_investment": initial_investment,
         "periodic_investment": periodic_investment,
         "periodicity": periodicity,
+        "color_map": color_map,  # Add color_map to the returned dictionary
     }
 
 
@@ -220,7 +221,7 @@ def main():
             except:
                 display_name = asset
                 
-            color_rect = f'<span style="display: inline-block; width: 20px; height: 20px; background-color: {color_map[asset]}; margin-right: 8px;"></span>'
+            color_rect = f'<span style="display: inline-block; width: 20px; height: 20px; background-color: {params["color_map"][asset]}; margin-right: 8px;"></span>'
             
             with st.expander(f"{color_rect} {display_name}", expanded=True):
                 col1, col2, col3 = st.columns(3)
