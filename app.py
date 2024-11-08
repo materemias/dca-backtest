@@ -4,6 +4,8 @@ import pandas as pd
 import plotly.graph_objects as go
 import streamlit as st
 import yfinance as yf
+import plotly.express as px
+import plotly.graph_objects as go
 
 from data_fetcher import fetch_historical_data
 from dca_calculator import calculate_multi_asset_dca
@@ -25,18 +27,25 @@ def create_ui():
             help="Enter valid Yahoo Finance ticker symbols"
         )
 
-        # Add Legend section
+        # Add Legend section with colored rectangles
         st.subheader("Legend")
+        # Generate a color palette for the selected tickers
+        colors = px.colors.qualitative.Set3[:len(selected_tickers)]
+        color_map = dict(zip(selected_tickers, colors))
+        
         for ticker in selected_tickers:
             try:
                 # Get ticker info
                 info = yf.Ticker(ticker).info
                 # Display name in format: 'Bitcoin USD (BTC-USD)'
                 display_name = f"{info.get('longName', ticker)} ({ticker})"
-                st.text(display_name)
+                # Create colored rectangle HTML
+                color_rect = f'<span style="display: inline-block; width: 20px; height: 20px; background-color: {color_map[ticker]}; margin-right: 8px;"></span>'
+                # Display with colored rectangle
+                st.markdown(f"{color_rect} {display_name}", unsafe_allow_html=True)
             except:
                 # Fallback if info fetch fails
-                st.text(f"{ticker}")
+                st.markdown(f"{color_rect} {ticker}", unsafe_allow_html=True)
 
         # Date range selector
         col1, col2 = st.columns(2)
@@ -80,41 +89,93 @@ def create_ui():
 
 
 def create_comparison_charts(asset_data: dict, results: dict, params: dict):
+    # Create color map for consistency
+    colors = px.colors.qualitative.Set3[:len(asset_data)]
+    color_map = dict(zip(asset_data.keys(), colors))
+
     # Create investment value over time chart
     fig1 = go.Figure()
 
     for asset in asset_data.keys():
-        snapshots = results[asset]["snapshots"]  # Get the snapshots DataFrame
+        snapshots = results[asset]["snapshots"]
+        color = color_map[asset]
+
+        # Try to get descriptive name
+        try:
+            info = yf.Ticker(asset).info
+            display_name = f"{info.get('longName', asset)} ({asset})"
+        except:
+            display_name = asset
 
         # Add investment line using the actual tracked total_investment
-        fig1.add_trace(go.Scatter(x=snapshots["date"], y=snapshots["total_investment"], name=f"{asset} - Investment", line=dict(dash="dash")))
+        fig1.add_trace(go.Scatter(
+            x=snapshots["date"], 
+            y=snapshots["total_investment"], 
+            name=f"{display_name} - Investment", 
+            line=dict(dash="dash", color=color)
+        ))
 
         # Add value line using the actual tracked total_value
-        fig1.add_trace(go.Scatter(x=snapshots["date"], y=snapshots["total_value"], name=f"{asset} - Value"))
+        fig1.add_trace(go.Scatter(
+            x=snapshots["date"], 
+            y=snapshots["total_value"], 
+            name=f"{display_name} - Value",
+            line=dict(color=color)
+        ))
 
-    fig1.update_layout(title="Investment vs. Value Over Time", xaxis_title="Date", yaxis_title="Value ($)", hovermode="x unified")
+    fig1.update_layout(
+        title="Investment vs. Value Over Time", 
+        xaxis_title="Date", 
+        yaxis_title="Value ($)", 
+        hovermode="x unified"
+    )
 
     # Create performance comparison chart
     fig2 = go.Figure()
 
-    performance_data = {"Asset": [], "Final Investment": [], "Final Value": [], "Absolute Gain": [], "Percentage Gain": []}
+    performance_data = {"Asset": [], "Display_Name": [], "Final Investment": [], "Final Value": [], 
+                       "Absolute Gain": [], "Percentage Gain": [], "Color": []}
 
     for asset, metrics in results.items():
+        try:
+            info = yf.Ticker(asset).info
+            display_name = f"{info.get('longName', asset)} ({asset})"
+        except:
+            display_name = asset
+            
         performance_data["Asset"].append(asset)
+        performance_data["Display_Name"].append(display_name)
         performance_data["Final Investment"].append(metrics["final_investment"])
         performance_data["Final Value"].append(metrics["final_value"])
         performance_data["Absolute Gain"].append(metrics["absolute_gain"])
         performance_data["Percentage Gain"].append(metrics["percentage_gain"])
+        performance_data["Color"].append(color_map[asset])
 
     # Convert to DataFrame and sort by Final Value
     perf_df = pd.DataFrame(performance_data)
     perf_df = perf_df.sort_values('Final Value', ascending=False)
 
     # Add bars for investment and final value using sorted data
-    fig2.add_trace(go.Bar(name="Final Investment", x=perf_df["Asset"], y=perf_df["Final Investment"], marker_color="lightgray"))
-    fig2.add_trace(go.Bar(name="Final Value", x=perf_df["Asset"], y=perf_df["Final Value"], marker_color="lightgreen"))
+    fig2.add_trace(go.Bar(
+        name="Final Investment", 
+        x=perf_df["Display_Name"], 
+        y=perf_df["Final Investment"], 
+        marker_color="lightgray"
+    ))
+    
+    fig2.add_trace(go.Bar(
+        name="Final Value", 
+        x=perf_df["Display_Name"], 
+        y=perf_df["Final Value"], 
+        marker_color=perf_df["Color"]
+    ))
 
-    fig2.update_layout(title="Investment Performance Comparison", barmode="group", yaxis_title="Value ($)", hovermode="x unified")
+    fig2.update_layout(
+        title="Investment Performance Comparison", 
+        barmode="group", 
+        yaxis_title="Value ($)", 
+        hovermode="x unified"
+    )
 
     return fig1, fig2
 
@@ -153,7 +214,15 @@ def main():
 
         # Display results in sorted order
         for asset, metrics in sorted_results:
-            with st.expander(f"{asset} Results", expanded=True):
+            try:
+                info = yf.Ticker(asset).info
+                display_name = f"{info.get('longName', asset)} ({asset})"
+            except:
+                display_name = asset
+                
+            color_rect = f'<span style="display: inline-block; width: 20px; height: 20px; background-color: {color_map[asset]}; margin-right: 8px;"></span>'
+            
+            with st.expander(f"{color_rect} {display_name}", expanded=True):
                 col1, col2, col3 = st.columns(3)
                 with col1:
                     st.metric("Final Investment", f"${metrics['final_investment']:,.2f}")
