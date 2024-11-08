@@ -20,7 +20,28 @@ def create_ui():
         # Replace asset selector with ticker input
         default_tickers = ["BTC-USD", "ETH-USD", "^GSPC", "^NDX", "QQQ3.L", "AAAU"]
 
-        # Generate a color palette for all default tickers first
+        # Add a text input for new ticker with autocomplete
+        new_ticker = st.text_input(
+            "Add new ticker",
+            placeholder="Enter Yahoo Finance ticker (e.g. AAPL)",
+            help="Enter a valid Yahoo Finance ticker symbol to add to the list"
+        )
+
+        # If user entered a new ticker, validate and add it
+        if new_ticker:
+            try:
+                # Try to get info for the ticker to validate it
+                info = yf.Ticker(new_ticker).info
+                if info and 'regularMarketPrice' in info:
+                    if new_ticker not in default_tickers:
+                        default_tickers.append(new_ticker)
+                        st.success(f"Added {new_ticker} to the list!")
+                else:
+                    st.error("Invalid ticker symbol")
+            except Exception as e:
+                st.error("Invalid ticker symbol or connection error")
+
+        # Generate a color palette for all tickers
         colors = px.colors.qualitative.Set3[: len(default_tickers)]
         color_map = dict(zip(default_tickers, colors))
 
