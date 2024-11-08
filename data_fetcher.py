@@ -14,6 +14,7 @@ def get_ticker_symbol(asset: str) -> str:
         "S&P500": "^GSPC",
         "NASDAQ-100": "^NDX",
         "WD Nasdaq 3x": "QQQ3.L",
+        "GS gold": "AAAU",
     }
     return ticker_mapping.get(asset)
 

@@ -16,7 +16,7 @@ def create_ui():
         st.header("Settings")
 
         # Asset selector - multiple choice
-        assets = ["BTC", "ETH", "S&P500", "NASDAQ-100", "WD Nasdaq 3x"]
+        assets = ["BTC", "ETH", "S&P500", "NASDAQ-100", "WD Nasdaq 3x", "GS gold"]
         selected_assets = st.multiselect("Select assets to analyze", options=assets, default=["BTC"])
 
         # Date range selector
