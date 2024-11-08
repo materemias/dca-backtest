@@ -54,21 +54,33 @@ def create_comparison_charts(asset_data: dict, results: dict, params: dict):
     fig1 = go.Figure()
 
     for asset in asset_data.keys():
-        df = asset_data[asset]
-        # Calculate cumulative investment line
-        dates = df["date"]
-        investment_line = [params["initial_investment"]] * len(dates)
-        for i in range(1, len(dates)):
-            investment_line[i] = investment_line[i - 1] + params["periodic_investment"]
+        snapshots = results[asset]["snapshots"]  # Get the snapshots DataFrame
 
-        # Add investment line
-        fig1.add_trace(go.Scatter(x=dates, y=investment_line, name=f"{asset} - Investment", line=dict(dash="dash")))
+        # Add investment line using the actual tracked total_investment
+        fig1.add_trace(
+            go.Scatter(
+                x=snapshots["date"], 
+                y=snapshots["total_investment"], 
+                name=f"{asset} - Investment", 
+                line=dict(dash="dash")
+            )
+        )
 
-        # Add value line
-        value_line = df["Close"] * results[asset]["total_units"]
-        fig1.add_trace(go.Scatter(x=dates, y=value_line, name=f"{asset} - Value"))
+        # Add value line using the actual tracked total_value
+        fig1.add_trace(
+            go.Scatter(
+                x=snapshots["date"], 
+                y=snapshots["total_value"], 
+                name=f"{asset} - Value"
+            )
+        )
 
-    fig1.update_layout(title="Investment vs. Value Over Time", xaxis_title="Date", yaxis_title="Value ($)", hovermode="x unified")
+    fig1.update_layout(
+        title="Investment vs. Value Over Time", 
+        xaxis_title="Date", 
+        yaxis_title="Value ($)", 
+        hovermode="x unified"
+    )
 
     # Create performance comparison chart
     fig2 = go.Figure()
