@@ -20,7 +20,7 @@ def create_ui():
         # Replace asset selector with ticker input
         if "default_tickers" not in st.session_state:
             st.session_state.default_tickers = ["BTC-USD", "ETH-USD", "^GSPC", "^NDX", "QQQ3.L", "AAAU"]
-        
+
         # Initialize selected formatted names session state
         if "selected_formatted_names" not in st.session_state:
             st.session_state.selected_formatted_names = []
@@ -28,13 +28,10 @@ def create_ui():
         # Add a new ticker using a form
         with st.form("add_ticker_form"):
             new_ticker = st.text_input(
-                "Add new ticker",
-                placeholder="Enter Yahoo Finance ticker (e.g. AAPL)",
-                help="Enter a valid Yahoo Finance ticker symbol to add to the list",
-                key="new_ticker_input"
+                "Add new ticker", placeholder="Enter Yahoo Finance ticker (e.g. AAPL)", help="Enter a valid Yahoo Finance ticker symbol to add to the list", key="new_ticker_input"
             )
             submitted = st.form_submit_button("Add Ticker")
-            
+
             if submitted and new_ticker:
                 try:
                     # Try to get history for the ticker to validate it
@@ -81,14 +78,67 @@ def create_ui():
 
         # First, select the default tickers
         selected_formatted = st.multiselect(
-            "Enter ticker symbols", 
-            options=formatted_options, 
-            default=st.session_state.selected_formatted_names if st.session_state.selected_formatted_names else [formatted_options[0]], 
-            help="Enter valid Yahoo Finance ticker symbols"
+            "Enter ticker symbols",
+            options=formatted_options,
+            default=st.session_state.selected_formatted_names if st.session_state.selected_formatted_names else [formatted_options[0]],
+            help="Enter valid Yahoo Finance ticker symbols",
         )
 
         # Update the session state with current selection
         st.session_state.selected_formatted_names = selected_formatted
+
+        # Convert selected formatted names back to tickers
+        selected_tickers = [name_to_ticker[name] for name in selected_formatted]
+
+        # Add Legend section with colored rectangles
+        st.subheader("Legend")
+
+        def truncate_name(name, max_length=20):
+            """Truncate name if longer than max_length and add ellipsis"""
+            if len(name) > max_length:
+                return name[: max_length - 3] + "..."
+            return name
+
+        # Important: Use selected_formatted to maintain color consistency
+        for name in selected_formatted:  # Use selected_formatted instead of selected_tickers
+            ticker = name_to_ticker[name]  # Get the ticker from the mapping
+            try:
+                info = yf.Ticker(ticker).info
+                full_name = f"{info.get('longName', ticker)} ({ticker})"
+                truncated_name = f"{truncate_name(info.get('longName', ticker))} ({ticker})"
+
+                # Use the same color from color_map
+                color_rect = f'<div style="width: 20px; height: 20px; background-color: {color_map[ticker]}; display: inline-block; margin-right: 8px; vertical-align: middle;"></div>'
+                st.markdown(
+                    f"""<div style="display: flex; align-items: center;" title="{full_name}">
+                        {color_rect}<div>{truncated_name}</div>
+                    </div>""",
+                    unsafe_allow_html=True,
+                )
+            except:
+                st.markdown(f"{ticker}", unsafe_allow_html=True)
+        st.
+
+        # Date range selector
+        col1, col2 = st.columns(2)
+        with col1:
+            start_date = st.date_input("Start date", value=date(2022, 1, 1), min_value=date(2010, 1, 1), max_value=date.today())
+        with col2:
+            end_date = st.date_input("End date", value=max(start_date, date.today()), min_value=start_date, max_value=date.today())
+
+        # Investment parameters
+        col3, col4 = st.columns(2)
+        with col3:
+            initial_investment = st.number_input("Initial investment ($)", min_value=0, value=100, step=100)
+        with col4:
+            periodic_investment = st.number_input("Periodic investment ($)", min_value=0, value=100, step=100)
+
+        # Periodicity selector
+        periodicity = st.selectbox(
+            "Investment frequency",
+            options=["Daily", "Weekly", "Monthly"],
+            index=2,  # Monthly as default
+        )
 
         # Custom CSS for the multiselect tags
         st.markdown(
@@ -118,58 +168,6 @@ def create_ui():
             """
 
         st.markdown(f"<style>{selected_styles}</style>", unsafe_allow_html=True)
-
-        # Convert selected formatted names back to tickers
-        selected_tickers = [name_to_ticker[name] for name in selected_formatted]
-
-        # Add Legend section with colored rectangles
-        st.subheader("Legend")
-
-        def truncate_name(name, max_length=20):
-            """Truncate name if longer than max_length and add ellipsis"""
-            if len(name) > max_length:
-                return name[:max_length-3] + "..."
-            return name
-
-        # Important: Use selected_formatted to maintain color consistency
-        for name in selected_formatted:  # Use selected_formatted instead of selected_tickers
-            ticker = name_to_ticker[name]  # Get the ticker from the mapping
-            try:
-                info = yf.Ticker(ticker).info
-                full_name = f"{info.get('longName', ticker)} ({ticker})"
-                truncated_name = f"{truncate_name(info.get('longName', ticker))} ({ticker})"
-                
-                # Use the same color from color_map
-                color_rect = f'<div style="width: 20px; height: 20px; background-color: {color_map[ticker]}; display: inline-block; margin-right: 8px; vertical-align: middle;"></div>'
-                st.markdown(
-                    f'''<div style="display: flex; align-items: center;" title="{full_name}">
-                        {color_rect}<div>{truncated_name}</div>
-                    </div>''', 
-                    unsafe_allow_html=True
-                )
-            except:
-                st.markdown(f"{ticker}", unsafe_allow_html=True)
-
-        # Date range selector
-        col1, col2 = st.columns(2)
-        with col1:
-            start_date = st.date_input("Start date", value=date(2022, 1, 1), min_value=date(2010, 1, 1), max_value=date.today())
-        with col2:
-            end_date = st.date_input("End date", value=max(start_date, date.today()), min_value=start_date, max_value=date.today())
-
-        # Investment parameters
-        col3, col4 = st.columns(2)
-        with col3:
-            initial_investment = st.number_input("Initial investment ($)", min_value=0, value=100, step=100)
-        with col4:
-            periodic_investment = st.number_input("Periodic investment ($)", min_value=0, value=100, step=100)
-
-        # Periodicity selector
-        periodicity = st.selectbox(
-            "Investment frequency",
-            options=["Daily", "Weekly", "Monthly"],
-            index=2,  # Monthly as default
-        )
 
     return {
         "selected_assets": selected_tickers,  # Changed from selected_assets to selected_tickers
