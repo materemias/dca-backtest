@@ -51,7 +51,7 @@ def create_ui():
                             if "selected_formatted_names" not in st.session_state:
                                 st.session_state.selected_formatted_names = []
                             st.session_state.selected_formatted_names.append(new_display_name)
-                            st.success(f"Added {new_ticker} to the list!")
+                            st.success(f"Added {new_display_name} to the list!")
                         else:
                             st.warning("This ticker is already in the list!")
                     else:
