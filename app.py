@@ -21,6 +21,10 @@ def create_ui():
         # Replace asset selector with ticker input
         default_tickers = ["BTC-USD", "ETH-USD", "^GSPC", "^NDX", "QQQ3.L", "AAAU"]
         
+        # Generate a color palette for all default tickers first
+        colors = px.colors.qualitative.Set3[:len(default_tickers)]
+        color_map = dict(zip(default_tickers, colors))
+
         # Create formatted options with colors for the multiselect
         formatted_options = []
         for ticker in default_tickers:
@@ -34,12 +38,31 @@ def create_ui():
         # Create a mapping between formatted names and actual tickers
         name_to_ticker = dict(zip(formatted_options, default_tickers))
         
+        # Custom CSS for the multiselect tags
+        st.markdown("""
+            <style>
+                .stMultiSelect span[data-baseweb="tag"] {
+                    background-color: white;
+                }
+            </style>
+        """, unsafe_allow_html=True)
+        
+        # Create dynamic CSS for each ticker's color
+        color_styles = ""
+        for i, (name, ticker) in enumerate(name_to_ticker.items()):
+            color_styles += f"""
+                .stMultiSelect span[data-baseweb="tag"]:nth-of-type({i+1}) {{
+                    background-color: {color_map[ticker]} !important;
+                }}
+            """
+        
+        st.markdown(f"<style>{color_styles}</style>", unsafe_allow_html=True)
+        
         selected_formatted = st.multiselect(
             "Enter ticker symbols",
             options=formatted_options,
-            default=[formatted_options[0]],  # Select first option by default
-            help="Enter valid Yahoo Finance ticker symbols",
-            format_func=lambda x: f"🟣 {x}"  # Add a colored dot before each option
+            default=[formatted_options[0]],
+            help="Enter valid Yahoo Finance ticker symbols"
         )
         
         # Convert selected formatted names back to tickers
@@ -47,9 +70,6 @@ def create_ui():
 
         # Add Legend section with colored rectangles
         st.subheader("Legend")
-        # Generate a color palette for the selected tickers
-        colors = px.colors.qualitative.Set3[:len(selected_tickers)]
-        color_map = dict(zip(selected_tickers, colors))
         
         for ticker in selected_tickers:
             try:
