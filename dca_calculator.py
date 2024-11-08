@@ -25,9 +25,23 @@ def calculate_dca_metrics(df: pd.DataFrame, initial_investment: float, periodic_
 
     # Resample data according to investment frequency
     resampled_df = resample_price_data(df, periodicity)
+    
+    # Remove rows with NaN prices
+    resampled_df = resampled_df.dropna(subset=['Close'])
 
     # Calculate number of periods
     num_periods = len(resampled_df)
+    
+    if num_periods == 0:
+        return {
+            "final_investment": 0,
+            "final_value": 0,
+            "absolute_gain": 0,
+            "percentage_gain": 0,
+            "monthly_gain": 0,
+            "total_units": 0,
+            "snapshots": pd.DataFrame(columns=["date", "total_investment", "total_value", "total_units", "price"]),
+        }
 
     # Calculate total investment
     final_investment = initial_investment + (periodic_investment * (num_periods - 1))
@@ -64,7 +78,13 @@ def calculate_dca_metrics(df: pd.DataFrame, initial_investment: float, periodic_
     monthly_gain = (((final_value / final_investment) ** (1 / months_elapsed)) - 1) * 100
 
     # Create snapshots dataframe
-    snapshots = pd.DataFrame({"date": resampled_df["date"], "total_investment": investment_snapshots, "total_value": value_snapshots, "total_units": cumulative_units, "price": resampled_df["Close"]})
+    snapshots = pd.DataFrame({
+        "date": resampled_df["date"], 
+        "total_investment": investment_snapshots, 
+        "total_value": value_snapshots, 
+        "total_units": cumulative_units, 
+        "price": resampled_df["Close"]
+    })
 
     return {
         "final_investment": round(final_investment, 2),
@@ -73,7 +93,7 @@ def calculate_dca_metrics(df: pd.DataFrame, initial_investment: float, periodic_
         "percentage_gain": round(percentage_gain, 2),
         "monthly_gain": round(monthly_gain, 2),
         "total_units": round(cumulative_units[-1], 6),
-        "snapshots": snapshots,  # New field containing all historical data
+        "snapshots": snapshots,
     }
 
 
