@@ -44,27 +44,38 @@ def fetch_historical_data(asset: str, start_date: datetime = None) -> pd.DataFra
     # Try to load cached data
     if cache_file.exists():
         cached_df = pd.read_parquet(cache_file)
-        latest_date = cached_df["date"].max()
+        earliest_cached_date = cached_df["date"].min()
+        latest_cached_date = cached_df["date"].max()
 
-        # If we need older data than what's cached
-        if start_date < latest_date:
-            return cached_df[cached_df["date"] >= start_date]
-
-        # If we need to fetch new data
-        if latest_date < datetime.now().date():
-            new_start_date = latest_date + timedelta(days=1)
+        need_earlier_data = start_date < earliest_cached_date
+        need_later_data = latest_cached_date < datetime.now().date()
+        
+        if need_earlier_data or need_later_data:
+            # Fetch missing historical data
             ticker_data = yf.Ticker(ticker)
-            new_df = ticker_data.history(start=new_start_date)
-
-            if not new_df.empty:
-                new_df = new_df.reset_index()
-                new_df = new_df.rename(columns={"Date": "date"})
-                new_df["date"] = pd.to_datetime(new_df["date"]).dt.date
-
-                # Combine and save updated data
-                combined_df = pd.concat([cached_df, new_df])
-                combined_df.to_parquet(cache_file)
-                return combined_df[combined_df["date"] >= start_date]
+            
+            if need_earlier_data:
+                # Fetch earlier data
+                early_df = ticker_data.history(start=start_date, end=earliest_cached_date)
+                if not early_df.empty:
+                    early_df = early_df.reset_index()
+                    early_df = early_df.rename(columns={"Date": "date"})
+                    early_df["date"] = pd.to_datetime(early_df["date"]).dt.date
+                    cached_df = pd.concat([early_df, cached_df])
+            
+            if need_later_data:
+                # Fetch newer data
+                new_start_date = latest_cached_date + timedelta(days=1)
+                new_df = ticker_data.history(start=new_start_date)
+                if not new_df.empty:
+                    new_df = new_df.reset_index()
+                    new_df = new_df.rename(columns={"Date": "date"})
+                    new_df["date"] = pd.to_datetime(new_df["date"]).dt.date
+                    cached_df = pd.concat([cached_df, new_df])
+            
+            # Save updated cache
+            cached_df = cached_df.sort_values("date")
+            cached_df.to_parquet(cache_file)
 
         return cached_df[cached_df["date"] >= start_date]
 
