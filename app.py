@@ -243,35 +243,44 @@ def create_comparison_charts(asset_data: dict, results: dict, params: dict):
 def create_price_chart(asset_data: dict, params: dict) -> go.Figure:
     """Create a price chart showing prices as percentage of all-time high"""
     fig = go.Figure()
-
+    
     for asset, df in asset_data.items():
-        # Calculate all-time high for the asset
-        all_time_high = df["Close"].max()
+        # Filter data for the selected date range
+        mask = (df['date'] >= params['start_date']) & (df['date'] <= params['end_date'])
+        df_filtered = df[mask]
+        
+        # Calculate all-time high for the asset within the selected date range
+        all_time_high = df_filtered['Close'].max()
         # Calculate percentage of ATH
-        normalized_prices = (df["Close"] / all_time_high) * 100
-
+        normalized_prices = (df_filtered['Close'] / all_time_high) * 100
+        
         # Try to get descriptive name
         try:
             info = yf.Ticker(asset).info
             display_name = f"{info.get('longName', asset)} ({asset})"
         except:
             display_name = asset
-
+            
         # Add trace using the same color as other charts
-        fig.add_trace(go.Scatter(x=df["date"], y=normalized_prices, name=display_name, line=dict(color=params["color_map"][asset])))
-
+        fig.add_trace(go.Scatter(
+            x=df_filtered['date'],
+            y=normalized_prices,
+            name=display_name,
+            line=dict(color=params['color_map'][asset])
+        ))
+    
     fig.update_layout(
         title="Price Performance (% of All-Time High)",
         xaxis_title="Date",
         yaxis_title="Percentage of All-Time High",
         hovermode="x unified",
-        height=800,  # Added this line to double the height
+        height=800,
         yaxis=dict(
             tickformat=".1f",
             ticksuffix="%"
         )
     )
-
+    
     return fig
 
 
