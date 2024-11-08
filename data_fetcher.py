@@ -31,7 +31,7 @@ def fetch_historical_data(ticker: str, start_date: datetime = None) -> pd.DataFr
     if start_date is None:
         start_date = datetime(2010, 1, 1)  # Default start date
 
-    cache_file = get_cache_path(asset)
+    cache_file = get_cache_path(ticker)
 
     # Try to load cached data
     if cache_file.exists():
