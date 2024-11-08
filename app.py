@@ -76,18 +76,28 @@ def create_ui():
         # Add Legend section with colored rectangles
         st.subheader("Legend")
 
+        def truncate_name(name, max_length=20):
+            """Truncate name if longer than max_length and add ellipsis"""
+            if len(name) > max_length:
+                return name[:max_length-3] + "..."
+            return name
+
         for ticker in selected_tickers:
             try:
-                # Get ticker info
                 info = yf.Ticker(ticker).info
-                # Display name in format: 'Bitcoin USD (BTC-USD)'
-                display_name = f"{info.get('longName', ticker)} ({ticker})"
-                # Create markdown for the title with the colored rectangle
+                full_name = f"{info.get('longName', ticker)} ({ticker})"
+                # Truncate the long name but keep ticker
+                truncated_name = f"{truncate_name(info.get('longName', ticker))} ({ticker})"
+                
+                # Create markdown with tooltip containing full name
                 color_rect = f'<div style="width: 20px; height: 20px; background-color: {color_map[ticker]}; margin-right: 8px;"></div>'
-                # Display with colored rectangle
-                st.markdown(f'<div style="display: flex; align-items: center;">{color_rect}<div>{display_name}</div></div>', unsafe_allow_html=True)
+                st.markdown(
+                    f'''<div style="display: flex; align-items: center;" title="{full_name}">
+                        {color_rect}<div>{truncated_name}</div>
+                    </div>''', 
+                    unsafe_allow_html=True
+                )
             except:
-                # Fallback if info fetch fails
                 st.markdown(f"{ticker}", unsafe_allow_html=True)
 
         # Date range selector
