@@ -53,25 +53,31 @@ def fetch_historical_data(asset: str, start_date: datetime = None) -> pd.DataFra
         if need_earlier_data or need_later_data:
             # Fetch missing historical data
             ticker_data = yf.Ticker(ticker)
+            today = datetime.now().date()
             
             if need_earlier_data:
-                # Fetch earlier data
-                early_df = ticker_data.history(start=start_date, end=earliest_cached_date)
-                if not early_df.empty:
-                    early_df = early_df.reset_index()
-                    early_df = early_df.rename(columns={"Date": "date"})
-                    early_df["date"] = pd.to_datetime(early_df["date"]).dt.date
-                    cached_df = pd.concat([early_df, cached_df])
+                # Ensure start_date isn't after end_date
+                history_start = min(start_date, earliest_cached_date - timedelta(days=1))
+                history_end = earliest_cached_date
+                if history_start < history_end:
+                    early_df = ticker_data.history(start=history_start, end=history_end)
+                    if not early_df.empty:
+                        early_df = early_df.reset_index()
+                        early_df = early_df.rename(columns={"Date": "date"})
+                        early_df["date"] = pd.to_datetime(early_df["date"]).dt.date
+                        cached_df = pd.concat([early_df, cached_df])
             
             if need_later_data:
-                # Fetch newer data
-                new_start_date = latest_cached_date + timedelta(days=1)
-                new_df = ticker_data.history(start=new_start_date)
-                if not new_df.empty:
-                    new_df = new_df.reset_index()
-                    new_df = new_df.rename(columns={"Date": "date"})
-                    new_df["date"] = pd.to_datetime(new_df["date"]).dt.date
-                    cached_df = pd.concat([cached_df, new_df])
+                # Ensure start_date isn't after end_date
+                history_start = latest_cached_date + timedelta(days=1)
+                history_end = today
+                if history_start < history_end:
+                    new_df = ticker_data.history(start=history_start, end=history_end)
+                    if not new_df.empty:
+                        new_df = new_df.reset_index()
+                        new_df = new_df.rename(columns={"Date": "date"})
+                        new_df["date"] = pd.to_datetime(new_df["date"]).dt.date
+                        cached_df = pd.concat([cached_df, new_df])
             
             # Save updated cache
             cached_df = cached_df.sort_values("date")
@@ -81,13 +87,17 @@ def fetch_historical_data(asset: str, start_date: datetime = None) -> pd.DataFra
 
     # If no cache exists, fetch all data
     ticker_data = yf.Ticker(ticker)
-    df = ticker_data.history(start=start_date)
+    today = datetime.now().date()
+    if start_date < today:
+        df = ticker_data.history(start=start_date, end=today)
 
-    # Clean up DataFrame
-    df = df.reset_index()
-    df = df.rename(columns={"Date": "date"})
-    df["date"] = pd.to_datetime(df["date"]).dt.date
+        # Clean up DataFrame
+        df = df.reset_index()
+        df = df.rename(columns={"Date": "date"})
+        df["date"] = pd.to_datetime(df["date"]).dt.date
 
-    # Cache the data
-    df.to_parquet(cache_file)
-    return df
+        # Cache the data
+        df.to_parquet(cache_file)
+        return df
+    
+    return pd.DataFrame()  # Return empty DataFrame if start_date is in the future
