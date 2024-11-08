@@ -60,6 +60,9 @@ def create_ui():
         # Create a mapping between formatted names and actual tickers
         name_to_ticker = dict(zip(formatted_options, default_tickers))
 
+        # First, select the default tickers
+        selected_formatted = st.multiselect("Enter ticker symbols", options=formatted_options, default=[formatted_options[0]], help="Enter valid Yahoo Finance ticker symbols")
+
         # Custom CSS for the multiselect tags
         st.markdown(
             """
@@ -88,8 +91,6 @@ def create_ui():
             """
 
         st.markdown(f"<style>{selected_styles}</style>", unsafe_allow_html=True)
-
-        selected_formatted = st.multiselect("Enter ticker symbols", options=formatted_options, default=[formatted_options[0]], help="Enter valid Yahoo Finance ticker symbols")
 
         # Convert selected formatted names back to tickers
         selected_tickers = [name_to_ticker[name] for name in selected_formatted]
