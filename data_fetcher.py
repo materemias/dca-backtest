@@ -36,6 +36,9 @@ def fetch_historical_data(asset: str, start_date: datetime = None) -> pd.DataFra
     if not ticker:
         raise ValueError(f"Unknown asset: {asset}")
 
+    # Define today at the start of the function
+    today = datetime.now().date()
+
     if start_date is None:
         start_date = datetime(2010, 1, 1)  # Default start date
 
