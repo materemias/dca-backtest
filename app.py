@@ -122,9 +122,29 @@ def create_ui():
         # Date range selector
         col1, col2 = st.columns(2)
         with col1:
-            start_date = st.date_input("Start date", value=date(2022, 1, 1), min_value=date(2010, 1, 1), max_value=date.today())
+            start_date = st.date_input(
+                "Start date", 
+                value=date(2022, 1, 1), 
+                min_value=date(2010, 1, 1), 
+                max_value=date.today()
+            )
         with col2:
-            end_date = st.date_input("End date", value=max(start_date, date.today()), min_value=start_date, max_value=date.today())
+            # Initialize end_date in session state if not present
+            if 'end_date' not in st.session_state:
+                st.session_state.end_date = date.today()
+            
+            # Only update end_date if start_date is after current end_date
+            if start_date > st.session_state.end_date:
+                st.session_state.end_date = start_date
+            
+            end_date = st.date_input(
+                "End date", 
+                value=st.session_state.end_date,
+                min_value=start_date,
+                max_value=date.today()
+            )
+            # Store the selected end_date
+            st.session_state.end_date = end_date
 
         # Investment parameters
         col3, col4 = st.columns(2)
