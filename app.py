@@ -85,10 +85,10 @@ def create_ui():
                 info = yf.Ticker(ticker).info
                 # Display name in format: 'Bitcoin USD (BTC-USD)'
                 display_name = f"{info.get('longName', ticker)} ({ticker})"
-                # Create colored rectangle HTML
-                color_rect = f'<span style="display: inline-block; width: 20px; height: 20px; background-color: {color_map[ticker]}; margin-right: 8px;"></span>'
+                # Create markdown for the title with the colored rectangle
+                color_rect = f'<div style="width: 20px; height: 20px; background-color: {color_map[ticker]}; margin-right: 8px;"></div>'
                 # Display with colored rectangle
-                st.markdown(f"{color_rect} {display_name}", unsafe_allow_html=True)
+                st.markdown(f'<div style="display: flex; align-items: center;">{color_rect}<div>{display_name}</div></div>', unsafe_allow_html=True)
             except:
                 # Fallback if info fetch fails
                 st.markdown(f"{ticker}", unsafe_allow_html=True)
@@ -267,9 +267,19 @@ def main():
             except:
                 display_name = asset
                 
-            color_rect = f'<span style="display: inline-block; width: 20px; height: 20px; background-color: {params["color_map"][asset]}; margin-right: 8px;"></span>'
+            # Create markdown for the title with the colored rectangle
+            title_html = f"""
+            <div style="display: flex; align-items: center;">
+                <div style="width: 20px; height: 20px; background-color: {params["color_map"][asset]}; margin-right: 8px;"></div>
+                <div>{display_name}</div>
+            </div>
+            """
             
-            with st.expander(f"{color_rect} {display_name}", expanded=True):
+            # Create the expander with just the display name
+            with st.expander(display_name, expanded=True):
+                # Show the colored title inside the expander
+                st.markdown(title_html, unsafe_allow_html=True)
+                
                 col1, col2, col3 = st.columns(3)
                 with col1:
                     st.metric("Final Investment", f"${metrics['final_investment']:,.2f}")
