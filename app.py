@@ -261,7 +261,15 @@ def create_price_chart(asset_data: dict, params: dict) -> go.Figure:
         fig.add_trace(go.Scatter(x=df["date"], y=normalized_prices, name=display_name, line=dict(color=params["color_map"][asset])))
 
     fig.update_layout(
-        title="Price Performance (% of All-Time High)", xaxis_title="Date", yaxis_title="Percentage of All-Time High", hovermode="x unified", yaxis=dict(tickformat=".1f", ticksuffix="%")
+        title="Price Performance (% of All-Time High)",
+        xaxis_title="Date",
+        yaxis_title="Percentage of All-Time High",
+        hovermode="x unified",
+        height=800,  # Added this line to double the height
+        yaxis=dict(
+            tickformat=".1f",
+            ticksuffix="%"
+        )
     )
 
     return fig
