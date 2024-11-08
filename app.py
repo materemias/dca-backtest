@@ -125,7 +125,15 @@ def main():
         # Display detailed metrics
         st.header("Detailed Results")
 
-        for asset, metrics in results.items():
+        # Convert results to a list of tuples (asset, metrics) sorted by final_value
+        sorted_results = sorted(
+            results.items(), 
+            key=lambda x: x[1]['final_value'], 
+            reverse=True
+        )
+
+        # Display results in sorted order
+        for asset, metrics in sorted_results:
             with st.expander(f"{asset} Results", expanded=True):
                 col1, col2, col3 = st.columns(3)
                 with col1:
