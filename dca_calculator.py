@@ -30,22 +30,45 @@ def calculate_dca_metrics(df: pd.DataFrame, initial_investment: float, periodic_
     # Calculate total investment
     total_investment = initial_investment + (periodic_investment * (num_periods - 1))
 
-    # Calculate units bought at each period
+    # Initialize lists to track investments and values over time
+    investment_snapshots = []
+    value_snapshots = []
+    cumulative_units = []
+    running_investment = initial_investment
+    
+    # Calculate initial purchase
     initial_units = initial_investment / resampled_df["Close"].iloc[0]
-    periodic_units = [periodic_investment / price for price in resampled_df["Close"].iloc[1:]]
-    total_units = initial_units + sum(periodic_units)
+    cumulative_units.append(initial_units)
+    investment_snapshots.append(running_investment)
+    value_snapshots.append(initial_units * resampled_df["Close"].iloc[0])
 
-    # Calculate final value
-    final_price = resampled_df["Close"].iloc[-1]
-    final_value = total_units * final_price
+    # Calculate periodic purchases
+    for i, price in enumerate(resampled_df["Close"].iloc[1:], 1):
+        running_investment += periodic_investment
+        new_units = periodic_investment / price
+        total_units_so_far = cumulative_units[-1] + new_units
+        
+        cumulative_units.append(total_units_so_far)
+        investment_snapshots.append(running_investment)
+        value_snapshots.append(total_units_so_far * price)
 
-    # Calculate gains
+    # Calculate final metrics
+    final_value = value_snapshots[-1]
     absolute_gain = final_value - total_investment
     percentage_gain = (absolute_gain / total_investment) * 100
 
     # Calculate average monthly gain
-    months_elapsed = (resampled_df["date"].iloc[-1] - resampled_df["date"].iloc[0]).days / 30.44  # Average days per month
+    months_elapsed = (resampled_df["date"].iloc[-1] - resampled_df["date"].iloc[0]).days / 30.44
     monthly_gain = (((final_value / total_investment) ** (1 / months_elapsed)) - 1) * 100
+
+    # Create snapshots dataframe
+    snapshots = pd.DataFrame({
+        'date': resampled_df['date'],
+        'total_investment': investment_snapshots,
+        'total_value': value_snapshots,
+        'total_units': cumulative_units,
+        'price': resampled_df['Close']
+    })
 
     return {
         "total_investment": round(total_investment, 2),
@@ -53,7 +76,8 @@ def calculate_dca_metrics(df: pd.DataFrame, initial_investment: float, periodic_
         "absolute_gain": round(absolute_gain, 2),
         "percentage_gain": round(percentage_gain, 2),
         "monthly_gain": round(monthly_gain, 2),
-        "total_units": round(total_units, 6),
+        "total_units": round(cumulative_units[-1], 6),
+        "snapshots": snapshots  # New field containing all historical data
     }
 
 
