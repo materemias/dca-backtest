@@ -64,33 +64,30 @@ def create_ui():
         st.markdown(
             """
             <style>
+                /* Base styles for all tags */
                 .stMultiSelect span[data-baseweb="tag"] {
-                    color: black !important;
-                }
-                .stMultiSelect span[data-baseweb="tag"] span {
-                    color: black !important;
+                    background-color: transparent !important;
                 }
             </style>
         """,
             unsafe_allow_html=True,
         )
 
-        # Create dynamic CSS for each ticker's color
-        color_styles = ""
-        for name in formatted_options:
+        # Create dynamic CSS for selected items
+        selected_styles = ""
+        for i, name in enumerate(selected_formatted, 1):  # Only style selected items
             ticker = name_to_ticker[name]
-            index = formatted_options.index(name) + 1  # CSS indices start at 1
-            color_styles += f"""
-                .stMultiSelect span[data-baseweb="tag"]:nth-of-type({index}) {{
+            selected_styles += f"""
+                .stMultiSelect span[data-baseweb="tag"]:nth-of-type({i}) {{
                     background-color: {color_map[ticker]} !important;
                     color: black !important;
                 }}
-                .stMultiSelect span[data-baseweb="tag"]:nth-of-type({index}) span {{
+                .stMultiSelect span[data-baseweb="tag"]:nth-of-type({i}) span {{
                     color: black !important;
                 }}
             """
 
-        st.markdown(f"<style>{color_styles}</style>", unsafe_allow_html=True)
+        st.markdown(f"<style>{selected_styles}</style>", unsafe_allow_html=True)
 
         selected_formatted = st.multiselect("Enter ticker symbols", options=formatted_options, default=[formatted_options[0]], help="Enter valid Yahoo Finance ticker symbols")
 
