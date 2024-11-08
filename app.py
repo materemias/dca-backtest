@@ -30,16 +30,18 @@ def create_ui():
         # If user entered a new ticker, validate and add it
         if new_ticker:
             try:
-                # Try to get info for the ticker to validate it
-                info = yf.Ticker(new_ticker).info
-                if info and 'regularMarketPrice' in info:
+                # Try to get history for the ticker to validate it
+                ticker_obj = yf.Ticker(new_ticker)
+                # Just check if we can get any recent history
+                test_data = ticker_obj.history(period="1d")
+                if not test_data.empty:
                     if new_ticker not in default_tickers:
                         default_tickers.append(new_ticker)
                         st.success(f"Added {new_ticker} to the list!")
                 else:
-                    st.error("Invalid ticker symbol")
+                    st.error("Invalid ticker symbol - no data available")
             except Exception as e:
-                st.error("Invalid ticker symbol or connection error")
+                st.error(f"Error adding ticker: {str(e)}")
 
         # Generate a color palette for all tickers
         colors = px.colors.qualitative.Set3[: len(default_tickers)]
