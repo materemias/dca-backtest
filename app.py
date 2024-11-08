@@ -86,10 +86,13 @@ def create_comparison_charts(asset_data: dict, results: dict, params: dict):
         performance_data["Absolute Gain"].append(metrics["absolute_gain"])
         performance_data["Percentage Gain"].append(metrics["percentage_gain"])
 
-    # Add bars for investment and final value
-    fig2.add_trace(go.Bar(name="Final Investment", x=performance_data["Asset"], y=performance_data["Final Investment"], marker_color="lightgray"))
+    # Convert to DataFrame and sort by Final Value
+    perf_df = pd.DataFrame(performance_data)
+    perf_df = perf_df.sort_values('Final Value', ascending=False)
 
-    fig2.add_trace(go.Bar(name="Final Value", x=performance_data["Asset"], y=performance_data["Final Value"], marker_color="lightgreen"))
+    # Add bars for investment and final value using sorted data
+    fig2.add_trace(go.Bar(name="Final Investment", x=perf_df["Asset"], y=perf_df["Final Investment"], marker_color="lightgray"))
+    fig2.add_trace(go.Bar(name="Final Value", x=perf_df["Asset"], y=perf_df["Final Value"], marker_color="lightgreen"))
 
     fig2.update_layout(title="Investment Performance Comparison", barmode="group", yaxis_title="Value ($)", hovermode="x unified")
 
