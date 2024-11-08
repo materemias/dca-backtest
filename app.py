@@ -57,45 +57,27 @@ def create_comparison_charts(asset_data: dict, results: dict, params: dict):
         snapshots = results[asset]["snapshots"]  # Get the snapshots DataFrame
 
         # Add investment line using the actual tracked total_investment
-        fig1.add_trace(
-            go.Scatter(
-                x=snapshots["date"], 
-                y=snapshots["total_investment"], 
-                name=f"{asset} - Investment", 
-                line=dict(dash="dash")
-            )
-        )
+        fig1.add_trace(go.Scatter(x=snapshots["date"], y=snapshots["total_investment"], name=f"{asset} - Investment", line=dict(dash="dash")))
 
         # Add value line using the actual tracked total_value
-        fig1.add_trace(
-            go.Scatter(
-                x=snapshots["date"], 
-                y=snapshots["total_value"], 
-                name=f"{asset} - Value"
-            )
-        )
+        fig1.add_trace(go.Scatter(x=snapshots["date"], y=snapshots["total_value"], name=f"{asset} - Value"))
 
-    fig1.update_layout(
-        title="Investment vs. Value Over Time", 
-        xaxis_title="Date", 
-        yaxis_title="Value ($)", 
-        hovermode="x unified"
-    )
+    fig1.update_layout(title="Investment vs. Value Over Time", xaxis_title="Date", yaxis_title="Value ($)", hovermode="x unified")
 
     # Create performance comparison chart
     fig2 = go.Figure()
 
-    performance_data = {"Asset": [], "Total Investment": [], "Final Value": [], "Absolute Gain": [], "Percentage Gain": []}
+    performance_data = {"Asset": [], "Final Investment": [], "Final Value": [], "Absolute Gain": [], "Percentage Gain": []}
 
     for asset, metrics in results.items():
         performance_data["Asset"].append(asset)
-        performance_data["Total Investment"].append(metrics["final_investment"])
+        performance_data["Final Investment"].append(metrics["final_investment"])
         performance_data["Final Value"].append(metrics["final_value"])
         performance_data["Absolute Gain"].append(metrics["absolute_gain"])
         performance_data["Percentage Gain"].append(metrics["percentage_gain"])
 
     # Add bars for investment and final value
-    fig2.add_trace(go.Bar(name="Total Investment", x=performance_data["Asset"], y=performance_data["Total Investment"], marker_color="lightgray"))
+    fig2.add_trace(go.Bar(name="Final Investment", x=performance_data["Asset"], y=performance_data["Final Investment"], marker_color="lightgray"))
 
     fig2.add_trace(go.Bar(name="Final Value", x=performance_data["Asset"], y=performance_data["Final Value"], marker_color="lightgreen"))
 
