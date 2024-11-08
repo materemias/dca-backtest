@@ -20,12 +20,30 @@ def create_ui():
 
         # Replace asset selector with ticker input
         default_tickers = ["BTC-USD", "ETH-USD", "^GSPC", "^NDX", "QQQ3.L", "AAAU"]
-        selected_tickers = st.multiselect(
+        
+        # Create formatted options with colors for the multiselect
+        formatted_options = []
+        for ticker in default_tickers:
+            try:
+                info = yf.Ticker(ticker).info
+                display_name = f"{info.get('longName', ticker)} ({ticker})"
+            except:
+                display_name = ticker
+            formatted_options.append(display_name)
+        
+        # Create a mapping between formatted names and actual tickers
+        name_to_ticker = dict(zip(formatted_options, default_tickers))
+        
+        selected_formatted = st.multiselect(
             "Enter ticker symbols",
-            options=default_tickers,
-            default=["BTC-USD"],
-            help="Enter valid Yahoo Finance ticker symbols"
+            options=formatted_options,
+            default=[formatted_options[0]],  # Select first option by default
+            help="Enter valid Yahoo Finance ticker symbols",
+            format_func=lambda x: f"🟣 {x}"  # Add a colored dot before each option
         )
+        
+        # Convert selected formatted names back to tickers
+        selected_tickers = [name_to_ticker[name] for name in selected_formatted]
 
         # Add Legend section with colored rectangles
         st.subheader("Legend")
