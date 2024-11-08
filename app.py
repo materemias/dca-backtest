@@ -1,11 +1,10 @@
 from datetime import date
 
 import pandas as pd
+import plotly.express as px
 import plotly.graph_objects as go
 import streamlit as st
 import yfinance as yf
-import plotly.express as px
-import plotly.graph_objects as go
 
 from data_fetcher import fetch_historical_data
 from dca_calculator import calculate_multi_asset_dca
@@ -20,9 +19,9 @@ def create_ui():
 
         # Replace asset selector with ticker input
         default_tickers = ["BTC-USD", "ETH-USD", "^GSPC", "^NDX", "QQQ3.L", "AAAU"]
-        
+
         # Generate a color palette for all default tickers first
-        colors = px.colors.qualitative.Set3[:len(default_tickers)]
+        colors = px.colors.qualitative.Set3[: len(default_tickers)]
         color_map = dict(zip(default_tickers, colors))
 
         # Create formatted options with colors for the multiselect
@@ -34,12 +33,13 @@ def create_ui():
             except:
                 display_name = ticker
             formatted_options.append(display_name)
-        
+
         # Create a mapping between formatted names and actual tickers
         name_to_ticker = dict(zip(formatted_options, default_tickers))
-        
+
         # Custom CSS for the multiselect tags
-        st.markdown("""
+        st.markdown(
+            """
             <style>
                 .stMultiSelect span[data-baseweb="tag"] {
                     background-color: white;
@@ -49,8 +49,10 @@ def create_ui():
                     color: black !important;
                 }
             </style>
-        """, unsafe_allow_html=True)
-        
+        """,
+            unsafe_allow_html=True,
+        )
+
         # Create dynamic CSS for each ticker's color
         color_styles = ""
         for i, (name, ticker) in enumerate(name_to_ticker.items()):
@@ -63,22 +65,17 @@ def create_ui():
                     color: black !important;
                 }}
             """
-        
+
         st.markdown(f"<style>{color_styles}</style>", unsafe_allow_html=True)
-        
-        selected_formatted = st.multiselect(
-            "Enter ticker symbols",
-            options=formatted_options,
-            default=[formatted_options[0]],
-            help="Enter valid Yahoo Finance ticker symbols"
-        )
-        
+
+        selected_formatted = st.multiselect("Enter ticker symbols", options=formatted_options, default=[formatted_options[0]], help="Enter valid Yahoo Finance ticker symbols")
+
         # Convert selected formatted names back to tickers
         selected_tickers = [name_to_ticker[name] for name in selected_formatted]
 
         # Add Legend section with colored rectangles
         st.subheader("Legend")
-        
+
         for ticker in selected_tickers:
             try:
                 # Get ticker info
@@ -96,19 +93,9 @@ def create_ui():
         # Date range selector
         col1, col2 = st.columns(2)
         with col1:
-            start_date = st.date_input(
-                "Start date", 
-                value=date(2022, 1, 1), 
-                min_value=date(2010, 1, 1), 
-                max_value=date.today()
-            )
+            start_date = st.date_input("Start date", value=date(2022, 1, 1), min_value=date(2010, 1, 1), max_value=date.today())
         with col2:
-            end_date = st.date_input(
-                "End date", 
-                value=max(start_date, date.today()),  
-                min_value=start_date,  
-                max_value=date.today()
-            )
+            end_date = st.date_input("End date", value=max(start_date, date.today()), min_value=start_date, max_value=date.today())
 
         # Investment parameters
         col3, col4 = st.columns(2)
@@ -137,7 +124,7 @@ def create_ui():
 
 def create_comparison_charts(asset_data: dict, results: dict, params: dict):
     # Create color map for consistency
-    colors = px.colors.qualitative.Set3[:len(asset_data)]
+    colors = px.colors.qualitative.Set3[: len(asset_data)]
     color_map = dict(zip(asset_data.keys(), colors))
 
     # Create investment value over time chart
@@ -155,33 +142,17 @@ def create_comparison_charts(asset_data: dict, results: dict, params: dict):
             display_name = asset
 
         # Add investment line using the actual tracked total_investment
-        fig1.add_trace(go.Scatter(
-            x=snapshots["date"], 
-            y=snapshots["total_investment"], 
-            name=f"{display_name} - Investment", 
-            line=dict(dash="dash", color=color)
-        ))
+        fig1.add_trace(go.Scatter(x=snapshots["date"], y=snapshots["total_investment"], name=f"{display_name} - Investment", line=dict(dash="dash", color=color)))
 
         # Add value line using the actual tracked total_value
-        fig1.add_trace(go.Scatter(
-            x=snapshots["date"], 
-            y=snapshots["total_value"], 
-            name=f"{display_name} - Value",
-            line=dict(color=color)
-        ))
+        fig1.add_trace(go.Scatter(x=snapshots["date"], y=snapshots["total_value"], name=f"{display_name} - Value", line=dict(color=color)))
 
-    fig1.update_layout(
-        title="Investment vs. Value Over Time", 
-        xaxis_title="Date", 
-        yaxis_title="Value ($)", 
-        hovermode="x unified"
-    )
+    fig1.update_layout(title="Investment vs. Value Over Time", xaxis_title="Date", yaxis_title="Value ($)", hovermode="x unified")
 
     # Create performance comparison chart
     fig2 = go.Figure()
 
-    performance_data = {"Asset": [], "Display_Name": [], "Final Investment": [], "Final Value": [], 
-                       "Absolute Gain": [], "Percentage Gain": [], "Color": []}
+    performance_data = {"Asset": [], "Display_Name": [], "Final Investment": [], "Final Value": [], "Absolute Gain": [], "Percentage Gain": [], "Color": []}
 
     for asset, metrics in results.items():
         try:
@@ -189,7 +160,7 @@ def create_comparison_charts(asset_data: dict, results: dict, params: dict):
             display_name = f"{info.get('longName', asset)} ({asset})"
         except:
             display_name = asset
-            
+
         performance_data["Asset"].append(asset)
         performance_data["Display_Name"].append(display_name)
         performance_data["Final Investment"].append(metrics["final_investment"])
@@ -200,29 +171,14 @@ def create_comparison_charts(asset_data: dict, results: dict, params: dict):
 
     # Convert to DataFrame and sort by Final Value
     perf_df = pd.DataFrame(performance_data)
-    perf_df = perf_df.sort_values('Final Value', ascending=False)
+    perf_df = perf_df.sort_values("Final Value", ascending=False)
 
     # Add bars for investment and final value using sorted data
-    fig2.add_trace(go.Bar(
-        name="Final Investment", 
-        x=perf_df["Display_Name"], 
-        y=perf_df["Final Investment"], 
-        marker_color="lightgray"
-    ))
-    
-    fig2.add_trace(go.Bar(
-        name="Final Value", 
-        x=perf_df["Display_Name"], 
-        y=perf_df["Final Value"], 
-        marker_color=perf_df["Color"]
-    ))
+    fig2.add_trace(go.Bar(name="Final Investment", x=perf_df["Display_Name"], y=perf_df["Final Investment"], marker_color="lightgray"))
 
-    fig2.update_layout(
-        title="Investment Performance Comparison", 
-        barmode="group", 
-        yaxis_title="Value ($)", 
-        hovermode="x unified"
-    )
+    fig2.add_trace(go.Bar(name="Final Value", x=perf_df["Display_Name"], y=perf_df["Final Value"], marker_color=perf_df["Color"]))
+
+    fig2.update_layout(title="Investment Performance Comparison", barmode="group", yaxis_title="Value ($)", hovermode="x unified")
 
     return fig1, fig2
 
@@ -253,11 +209,7 @@ def main():
         st.header("Detailed Results")
 
         # Convert results to a list of tuples (asset, metrics) sorted by final_value
-        sorted_results = sorted(
-            results.items(), 
-            key=lambda x: x[1]['final_value'], 
-            reverse=True
-        )
+        sorted_results = sorted(results.items(), key=lambda x: x[1]["final_value"], reverse=True)
 
         # Display results in sorted order
         for asset, metrics in sorted_results:
@@ -266,12 +218,9 @@ def main():
                 display_name = f"{info.get('longName', asset)} ({asset})"
             except:
                 display_name = asset
-                
-            # Create the colored title for the expander
-            title_html = f'<span style="display: inline-block; width: 20px; height: 20px; background-color: {params["color_map"][asset]}; margin-right: 8px;"></span>{display_name}'
-            
+
             # Create the expander with the colored title
-            with st.expander(title_html, expanded=True):
+            with st.expander(display_name, expanded=True):
                 col1, col2, col3 = st.columns(3)
                 with col1:
                     st.metric("Final Investment", f"${metrics['final_investment']:,.2f}")
