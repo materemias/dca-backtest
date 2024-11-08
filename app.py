@@ -267,19 +267,11 @@ def main():
             except:
                 display_name = asset
                 
-            # Create markdown for the title with the colored rectangle
-            title_html = f"""
-            <div style="display: flex; align-items: center;">
-                <div style="width: 20px; height: 20px; background-color: {params["color_map"][asset]}; margin-right: 8px;"></div>
-                <div>{display_name}</div>
-            </div>
-            """
+            # Create the colored title for the expander
+            title_html = f'<span style="display: inline-block; width: 20px; height: 20px; background-color: {params["color_map"][asset]}; margin-right: 8px;"></span>{display_name}'
             
-            # Create the expander with just the display name
-            with st.expander(display_name, expanded=True):
-                # Show the colored title inside the expander
-                st.markdown(title_html, unsafe_allow_html=True)
-                
+            # Create the expander with the colored title
+            with st.expander(title_html, expanded=True):
                 col1, col2, col3 = st.columns(3)
                 with col1:
                     st.metric("Final Investment", f"${metrics['final_investment']:,.2f}")
