@@ -1,32 +1,64 @@
 # Standard library imports
 from datetime import date
 
-# Third-party data and visualization libraries
+# Third-party imports
 import pandas as pd
 import plotly.express as px
 import plotly.graph_objects as go
 import streamlit as st
 import yfinance as yf
 
-# Local module imports
+# Local imports
 from data_fetcher import fetch_historical_data
 from dca_calculator import calculate_multi_asset_dca
 
 
+def initialize_session_state():
+    """Initialize session state variables if they don't exist."""
+    if "default_tickers" not in st.session_state:
+        st.session_state.default_tickers = ["BTC-USD", "ETH-USD", "^GSPC", "^NDX", "QQQ3.L", "AAAU"]
+    
+    if "selected_formatted_names" not in st.session_state:
+        st.session_state.selected_formatted_names = []
+        
+    if "end_date" not in st.session_state:
+        st.session_state.end_date = date.today()
+
+def get_ticker_info(ticker):
+    """Get formatted display name for a ticker."""
+    try:
+        info = yf.Ticker(ticker).info
+        return f"{info.get('longName', ticker)} ({ticker})"
+    except:
+        return ticker
+
+def validate_new_ticker(ticker):
+    """Validate a new ticker symbol."""
+    try:
+        ticker_obj = yf.Ticker(ticker)
+        test_data = ticker_obj.history(period="1d")
+        return not test_data.empty, ticker_obj
+    except Exception as e:
+        return False, None
+
+def create_color_mapping(tickers):
+    """Create color mapping for tickers."""
+    colors = px.colors.qualitative.Set3[:len(tickers)]
+    return dict(zip(tickers, colors))
+
+def create_formatted_options(tickers):
+    """Create formatted options for multiselect."""
+    return [get_ticker_info(ticker) for ticker in tickers]
+
 def create_ui():
+    """Create the main user interface."""
     st.title("DCA Investment Calculator")
 
-    # Move all settings to sidebar
     with st.sidebar:
         st.header("Settings")
-
-        # Replace asset selector with ticker input
-        if "default_tickers" not in st.session_state:
-            st.session_state.default_tickers = ["BTC-USD", "ETH-USD", "^GSPC", "^NDX", "QQQ3.L", "AAAU"]
-
-        # Initialize selected formatted names session state
-        if "selected_formatted_names" not in st.session_state:
-            st.session_state.selected_formatted_names = []
+        
+        # Initialize session state
+        initialize_session_state()
 
         # Add a new ticker using a form
         with st.form("add_ticker_form"):
