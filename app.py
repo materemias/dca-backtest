@@ -65,7 +65,6 @@ def create_ui():
             """
             <style>
                 .stMultiSelect span[data-baseweb="tag"] {
-                    background-color: white;
                     color: black !important;
                 }
                 .stMultiSelect span[data-baseweb="tag"] span {
@@ -78,13 +77,15 @@ def create_ui():
 
         # Create dynamic CSS for each ticker's color
         color_styles = ""
-        for i, (name, ticker) in enumerate(name_to_ticker.items()):
+        for name in formatted_options:
+            ticker = name_to_ticker[name]
+            index = formatted_options.index(name) + 1  # CSS indices start at 1
             color_styles += f"""
-                .stMultiSelect span[data-baseweb="tag"]:nth-of-type({i+1}) {{
+                .stMultiSelect span[data-baseweb="tag"]:nth-of-type({index}) {{
                     background-color: {color_map[ticker]} !important;
                     color: black !important;
                 }}
-                .stMultiSelect span[data-baseweb="tag"]:nth-of-type({i+1}) span {{
+                .stMultiSelect span[data-baseweb="tag"]:nth-of-type({index}) span {{
                     color: black !important;
                 }}
             """
