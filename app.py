@@ -117,7 +117,7 @@ def create_ui():
                 )
             except:
                 st.markdown(f"{ticker}", unsafe_allow_html=True)
-        st.
+        st.markdown("<hr style='margin-top: 10px; margin-bottom: 10px;'>", unsafe_allow_html=True)
 
         # Date range selector
         col1, col2 = st.columns(2)
