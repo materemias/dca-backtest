@@ -20,6 +20,10 @@ def create_ui():
         # Replace asset selector with ticker input
         if "default_tickers" not in st.session_state:
             st.session_state.default_tickers = ["BTC-USD", "ETH-USD", "^GSPC", "^NDX", "QQQ3.L", "AAAU"]
+        
+        # Initialize selected formatted names session state
+        if "selected_formatted_names" not in st.session_state:
+            st.session_state.selected_formatted_names = []
 
         # Add a new ticker using a form
         with st.form("add_ticker_form"):
@@ -40,6 +44,16 @@ def create_ui():
                     if not test_data.empty:
                         if new_ticker not in st.session_state.default_tickers:
                             st.session_state.default_tickers.append(new_ticker)
+                            # Get the formatted name for the new ticker
+                            try:
+                                info = ticker_obj.info
+                                new_display_name = f"{info.get('longName', new_ticker)} ({new_ticker})"
+                            except:
+                                new_display_name = new_ticker
+                            # Add to selected items
+                            if "selected_formatted_names" not in st.session_state:
+                                st.session_state.selected_formatted_names = []
+                            st.session_state.selected_formatted_names.append(new_display_name)
                             st.success(f"Added {new_ticker} to the list!")
                         else:
                             st.warning("This ticker is already in the list!")
@@ -66,7 +80,15 @@ def create_ui():
         name_to_ticker = dict(zip(formatted_options, st.session_state.default_tickers))
 
         # First, select the default tickers
-        selected_formatted = st.multiselect("Enter ticker symbols", options=formatted_options, default=[formatted_options[0]], help="Enter valid Yahoo Finance ticker symbols")
+        selected_formatted = st.multiselect(
+            "Enter ticker symbols", 
+            options=formatted_options, 
+            default=st.session_state.selected_formatted_names if st.session_state.selected_formatted_names else [formatted_options[0]], 
+            help="Enter valid Yahoo Finance ticker symbols"
+        )
+
+        # Update the session state with current selection
+        st.session_state.selected_formatted_names = selected_formatted
 
         # Custom CSS for the multiselect tags
         st.markdown(
