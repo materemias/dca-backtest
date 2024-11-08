@@ -1,11 +1,14 @@
+# Standard library imports
 from datetime import date
 
+# Third-party data and visualization libraries
 import pandas as pd
 import plotly.express as px
 import plotly.graph_objects as go
 import streamlit as st
 import yfinance as yf
 
+# Local module imports
 from data_fetcher import fetch_historical_data
 from dca_calculator import calculate_multi_asset_dca
 
