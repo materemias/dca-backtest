@@ -11,8 +11,12 @@ from ui_core import (DEFAULT_TICKERS, DEFAULT_START_DATE,
                      DEFAULT_INITIAL_INVESTMENT, DEFAULT_PERIODIC_INVESTMENT,
                      initialize_session_state, get_ticker_info, 
                      validate_ticker, create_color_mapping, truncate_name)
-from ui_controls import handle_new_ticker_form, display_legend, 
-                        apply_custom_styling, get_investment_parameters
+from ui_controls import (
+    handle_new_ticker_form, 
+    display_legend, 
+    apply_custom_styling, 
+    get_investment_parameters
+)
 
 
 def initialize_session_state():
