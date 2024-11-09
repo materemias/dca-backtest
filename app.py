@@ -1,15 +1,10 @@
-# Standard library imports
-
-# Third-party imports
+import pandas as pd
 import streamlit as st
 import yfinance as yf
-import pandas as pd
 
 from chart_creators import create_comparison_charts, create_price_chart
 from data_fetcher import fetch_historical_data
 from dca_calculator import calculate_multi_asset_dca, run_randomized_tests
-
-# Local imports
 from ui_components import create_ui
 
 
@@ -51,7 +46,7 @@ def display_detailed_results(results, color_map):
 def display_random_test_results(random_results, params):
     """Display results from randomized tests."""
     st.header("Random Test Results (Averages)")
-    
+
     # Convert results to a list of tuples (asset, metrics) sorted by final_value
     sorted_results = sorted(random_results.items(), key=lambda x: x[1]["final_value"], reverse=True)
 
@@ -79,7 +74,7 @@ def display_random_test_results(random_results, params):
             with col5:
                 st.metric("Avg B&H Gain", f"{metrics['buy_hold_gain']:,.2f}%")
                 st.metric("Avg B&H Monthly", f"{metrics['buy_hold_monthly']:,.2f}%")
-            
+
             # Add detailed runs table if enabled
             if params["show_individual_runs"] and "all_runs" in metrics:
                 st.markdown("#### Individual Test Runs")
@@ -89,10 +84,10 @@ def display_random_test_results(random_results, params):
                 for col in df.columns:
                     if col in ["final_investment", "final_value", "absolute_gain"]:
                         df[col] = df[col].apply(lambda x: f"${x:,.2f}")
-                    elif col in ["percentage_gain", "monthly_gain", "price_drawdown", 
-                               "value_drawdown", "buy_hold_gain", "buy_hold_monthly"]:
+                    elif col in ["percentage_gain", "monthly_gain", "price_drawdown", "value_drawdown", "buy_hold_gain", "buy_hold_monthly"]:
                         df[col] = df[col].apply(lambda x: f"{x}%")
                 st.dataframe(df)
+
 
 def main():
     st.set_page_config(page_title="DCA Calculator", page_icon="📈", layout="wide")
