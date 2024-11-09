@@ -145,21 +145,21 @@ def get_investment_parameters() -> Dict:
 
     # Add randomized testing controls
     date_diff = end_date - start_date
+    run_random_tests = False
+    num_tests = 100  # default value
+    
     if date_diff.days >= 730:  # 2 years
         col_random1, col_random2 = st.columns(2)
         with col_random1:
-            run_random_tests = st.checkbox("Run randomized tests", 
-                                         help="Run multiple tests with random date ranges")
-        with col_random2:
-            num_tests = st.number_input("Number of tests", 
+            num_tests = st.number_input("Number of random tests", 
                                       min_value=10, 
                                       max_value=1000, 
                                       value=100, 
-                                      step=10,
-                                      disabled=not run_random_tests)
-    else:
-        run_random_tests = False
-        num_tests = 0
+                                      step=10)
+        with col_random2:
+            if st.button("Run Random Tests", 
+                        help="Run multiple tests with random date ranges"):
+                run_random_tests = True
 
     return {
         "start_date": start_date,
