@@ -65,7 +65,7 @@ def display_random_test_results(random_results, params):
                 st.metric("Avg Final Value", f"${metrics['final_value']:,.2f}")
             with col2:
                 st.metric("Avg Absolute Gain", f"${metrics['absolute_gain']:,.2f}")
-                st.metric("Avg % Gain", f"{metrics['percentage_gain']:,.2f}%")
+                st.metric("Avg Total Units", f"{metrics['total_units']:,.6f}")
             with col3:
                 st.metric("Avg Monthly Gain", f"{metrics['monthly_gain']:,.2f}%")
                 st.metric("Avg Price DD", f"{metrics['price_drawdown']:,.2f}%")
