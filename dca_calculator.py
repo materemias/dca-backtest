@@ -143,6 +143,8 @@ def calculate_dca_metrics(df: pd.DataFrame, initial_investment: float, periodic_
         "total_units": round(cumulative_units[-1], 6),
         "price_drawdown": price_drawdown,  # Price drawdown
         "value_drawdown": value_drawdown,  # Portfolio value drawdown
+        "buy_hold_gain": round(buy_hold_gain, 2),
+        "buy_hold_monthly": round(buy_hold_monthly, 2),
         "snapshots": snapshots,
     }
 
