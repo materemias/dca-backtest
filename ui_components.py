@@ -247,5 +247,6 @@ def create_ui() -> Dict:
         "periodicity": params["periodicity"],
         "color_map": color_map,
         "run_random_tests": params.get("run_random_tests", False),
-        "num_tests": params.get("num_tests", 100)
+        "num_tests": params.get("num_tests", 100),
+        "show_individual_runs": params.get("show_individual_runs", False)
     }
