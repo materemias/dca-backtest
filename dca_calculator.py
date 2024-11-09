@@ -209,7 +209,8 @@ def run_randomized_tests(asset_data: Dict[str, pd.DataFrame], params: Dict, num_
                 "price_drawdown": metrics["price_drawdown"],
                 "value_drawdown": metrics["value_drawdown"],
                 "buy_hold_gain": metrics["buy_hold_gain"],
-                "buy_hold_monthly": metrics["buy_hold_monthly"]
+                "buy_hold_monthly": metrics["buy_hold_monthly"],
+                "total_units": metrics["total_units"]
             }
             all_metrics.append(metrics_for_table)
         
@@ -224,6 +225,7 @@ def run_randomized_tests(asset_data: Dict[str, pd.DataFrame], params: Dict, num_
             "value_drawdown": sum(m["value_drawdown"] for m in all_metrics) / num_tests,
             "buy_hold_gain": sum(m["buy_hold_gain"] for m in all_metrics) / num_tests,
             "buy_hold_monthly": sum(m["buy_hold_monthly"] for m in all_metrics) / num_tests,
+            "total_units": sum(m["total_units"] for m in all_metrics) / num_tests,
             "all_runs": all_metrics  # Store all individual runs
         }
         
