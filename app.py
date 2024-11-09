@@ -381,7 +381,7 @@ def main():
 
             # Create the expander with the colored title
             with st.expander(display_name, expanded=True):
-                col1, col2, col3, col4 = st.columns(4)
+                col1, col2, col3, col4, col5 = st.columns(5)  # Changed to 5 columns
                 with col1:
                     st.metric("Final Investment", f"${metrics['final_investment']:,.2f}")
                     st.metric("Final Value", f"${metrics['final_value']:,.2f}")
@@ -389,11 +389,14 @@ def main():
                     st.metric("Absolute Gain", f"${metrics['absolute_gain']:,.2f}")
                     st.metric("Total Units", f"{metrics['total_units']:,.6f}")
                 with col3:
-                    st.metric("Percentage Gain", f"{metrics['percentage_gain']:,.2f}%")
-                    st.metric("Avg Monthly Gain", f"{metrics['monthly_gain']:,.2f}%")
+                    st.metric("DCA % Gain", f"{metrics['percentage_gain']:,.2f}%")
+                    st.metric("DCA Monthly Gain", f"{metrics['monthly_gain']:,.2f}%")
                 with col4:
                     st.metric("Price Max Drawdown", f"{metrics['price_drawdown']:,.2f}%")
                     st.metric("Value Max Drawdown", f"{metrics['value_drawdown']:,.2f}%")
+                with col5:
+                    st.metric("Buy & Hold Gain", f"{metrics['buy_hold_gain']:,.2f}%")
+                    st.metric("B&H Monthly Gain", f"{metrics['buy_hold_monthly']:,.2f}%")
 
 
 if __name__ == "__main__":

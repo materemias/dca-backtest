@@ -70,11 +70,25 @@ def calculate_dca_metrics(df: pd.DataFrame, initial_investment: float, periodic_
             "total_units": 0,
             "price_drawdown": 0,
             "value_drawdown": 0,
+            "buy_hold_gain": 0,
+            "buy_hold_monthly": 0,
             "snapshots": pd.DataFrame(columns=["date", "total_investment", "total_value", "total_units", "price"]),
         }
 
     # Calculate total investment
     final_investment = initial_investment + (periodic_investment * (num_periods - 1))
+
+    # Calculate buy & hold metrics
+    total_investment_amount = final_investment
+    initial_price = resampled_df["Close"].iloc[0]
+    final_price = resampled_df["Close"].iloc[-1]
+    buy_hold_units = total_investment_amount / initial_price
+    buy_hold_value = buy_hold_units * final_price
+    buy_hold_gain = ((buy_hold_value / total_investment_amount) - 1) * 100
+    
+    # Calculate buy & hold monthly gain
+    months_elapsed = (resampled_df["date"].iloc[-1] - resampled_df["date"].iloc[0]).days / 30.44
+    buy_hold_monthly = (((buy_hold_value / total_investment_amount) ** (1 / months_elapsed)) - 1) * 100
 
     # Initialize lists to track investments and values over time
     investment_snapshots = []
