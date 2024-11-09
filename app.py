@@ -309,12 +309,20 @@ def create_price_chart(asset_data: dict, params: dict) -> go.Figure:
         except:
             display_name = asset
             
-        # Add trace using the same color as other charts
+        # Add trace with customized hover template
         fig.add_trace(go.Scatter(
             x=df_filtered['date'],
             y=normalized_prices,
             name=display_name,
-            line=dict(color=params['color_map'][asset])
+            line=dict(color=params['color_map'][asset]),
+            hovertemplate=(
+                "<b>%{fullData.name}</b><br>" +
+                "Date: %{x}<br>" +
+                "Price: $%{customdata:,.2f}<br>" +
+                "Percent of ATH: %{y:.1f}%<br>" +
+                "<extra></extra>"
+            ),
+            customdata=df_filtered['Close']  # Add actual price data for hover
         ))
     
     fig.update_layout(
