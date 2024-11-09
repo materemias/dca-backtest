@@ -15,7 +15,10 @@ def initialize_session_state():
     if "default_tickers" not in st.session_state:
         st.session_state.default_tickers = DEFAULT_TICKERS
     if "selected_formatted_names" not in st.session_state:
-        st.session_state.selected_formatted_names = []
+        # Initialize with the formatted name of the first ticker
+        first_ticker = DEFAULT_TICKERS[0]
+        first_formatted = get_ticker_info(first_ticker)
+        st.session_state.selected_formatted_names = [first_formatted]
     if "end_date" not in st.session_state:
         st.session_state.end_date = date.today()
     if "multiselect_key" not in st.session_state:
