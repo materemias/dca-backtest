@@ -1,17 +1,16 @@
 # Standard library imports
 from datetime import date
-from typing import Dict, List, Tuple
+from typing import Dict
 
 # Third-party imports
-import pandas as pd
-import plotly.express as px
-import plotly.graph_objects as go
 import streamlit as st
 import yfinance as yf
 
 # Local imports
+from ui_components import create_ui
 from data_fetcher import fetch_historical_data
 from dca_calculator import calculate_multi_asset_dca
+from chart_creators import create_comparison_charts, create_price_chart
 
 # Constants
 DEFAULT_TICKERS = ["BTC-USD", "ETH-USD", "^GSPC", "^NDX", "QQQ3.L", "AAAU"]
