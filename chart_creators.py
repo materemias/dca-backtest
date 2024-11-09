@@ -47,7 +47,13 @@ def create_comparison_charts(asset_data: dict, results: dict, params: dict) -> T
     # Create performance comparison chart
     fig2 = go.Figure()
 
-    performance_data = {"Asset": [], "Display_Name": [], "Final Investment": [], "Final Value": [], "Absolute Gain": [], "Percentage Gain": [], "Color": []}
+    performance_data = {
+        "Asset": [], 
+        "Display_Name": [], 
+        "DCA_Gain": [],  # Changed from Final Investment
+        "BH_Gain": [],   # Changed from Final Value
+        "Color": []
+    }
 
     for asset, metrics in results.items():
         try:
@@ -58,22 +64,40 @@ def create_comparison_charts(asset_data: dict, results: dict, params: dict) -> T
 
         performance_data["Asset"].append(asset)
         performance_data["Display_Name"].append(display_name)
-        performance_data["Final Investment"].append(metrics["final_investment"])
-        performance_data["Final Value"].append(metrics["final_value"])
-        performance_data["Absolute Gain"].append(metrics["absolute_gain"])
-        performance_data["Percentage Gain"].append(metrics["percentage_gain"])
+        performance_data["DCA_Gain"].append(metrics["percentage_gain"])  # Changed
+        performance_data["BH_Gain"].append(metrics["buy_hold_gain"])     # Changed
         performance_data["Color"].append(params["color_map"][asset])
 
-    # Convert to DataFrame and sort by Final Value
+    # Convert to DataFrame and sort by DCA Gain
     perf_df = pd.DataFrame(performance_data)
-    perf_df = perf_df.sort_values("Final Value", ascending=False)
+    perf_df = perf_df.sort_values("DCA_Gain", ascending=False)  # Changed sorting column
 
-    # Add bars for investment and final value using sorted data
-    fig2.add_trace(go.Bar(name="Final Investment", x=perf_df["Display_Name"], y=perf_df["Final Investment"], marker_color="lightgray"))
+    # Add bars for DCA and Buy & Hold gains
+    fig2.add_trace(
+        go.Bar(
+            name="DCA % Gain", 
+            x=perf_df["Display_Name"], 
+            y=perf_df["DCA_Gain"],
+            marker_color=perf_df["Color"]
+        )
+    )
 
-    fig2.add_trace(go.Bar(name="Final Value", x=perf_df["Display_Name"], y=perf_df["Final Value"], marker_color=perf_df["Color"]))
+    fig2.add_trace(
+        go.Bar(
+            name="Buy & Hold % Gain", 
+            x=perf_df["Display_Name"], 
+            y=perf_df["BH_Gain"],
+            marker_color="lightgray"
+        )
+    )
 
-    fig2.update_layout(title="Investment Performance Comparison", barmode="group", yaxis_title="Value ($)", hovermode="x unified")
+    fig2.update_layout(
+        title="Investment Performance Comparison", 
+        barmode="group", 
+        yaxis_title="Gain (%)",  # Changed
+        yaxis=dict(tickformat=".1f", ticksuffix="%"),  # Added percentage formatting
+        hovermode="x unified"
+    )
 
     return fig1, fig2
 
