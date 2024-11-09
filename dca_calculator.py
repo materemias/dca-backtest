@@ -177,7 +177,7 @@ def run_randomized_tests(asset_data: Dict[str, pd.DataFrame], params: Dict, num_
     for asset, df in asset_data.items():
         all_metrics = []
         
-        for _ in range(num_tests):
+        for test_num in range(num_tests):
             # Generate random start and end dates
             test_period = random.uniform(365, (total_period.days - 1))
             random_start_offset = random.uniform(0, total_period.days - test_period)
@@ -195,7 +195,23 @@ def run_randomized_tests(asset_data: Dict[str, pd.DataFrame], params: Dict, num_
                                          params["periodic_investment"], 
                                          params["periodicity"],
                                          test_end)
-            all_metrics.append(metrics)
+            
+            # Add test number and dates to metrics
+            metrics_for_table = {
+                "test_num": test_num + 1,
+                "start_date": test_start.strftime("%Y-%m-%d"),
+                "end_date": test_end.strftime("%Y-%m-%d"),
+                "final_investment": metrics["final_investment"],
+                "final_value": metrics["final_value"],
+                "absolute_gain": metrics["absolute_gain"],
+                "percentage_gain": metrics["percentage_gain"],
+                "monthly_gain": metrics["monthly_gain"],
+                "price_drawdown": metrics["price_drawdown"],
+                "value_drawdown": metrics["value_drawdown"],
+                "buy_hold_gain": metrics["buy_hold_gain"],
+                "buy_hold_monthly": metrics["buy_hold_monthly"]
+            }
+            all_metrics.append(metrics_for_table)
         
         # Calculate averages
         avg_metrics = {
@@ -208,6 +224,7 @@ def run_randomized_tests(asset_data: Dict[str, pd.DataFrame], params: Dict, num_
             "value_drawdown": sum(m["value_drawdown"] for m in all_metrics) / num_tests,
             "buy_hold_gain": sum(m["buy_hold_gain"] for m in all_metrics) / num_tests,
             "buy_hold_monthly": sum(m["buy_hold_monthly"] for m in all_metrics) / num_tests,
+            "all_runs": all_metrics  # Store all individual runs
         }
         
         results_by_asset[asset] = avg_metrics

@@ -78,6 +78,20 @@ def display_random_test_results(random_results, color_map):
             with col5:
                 st.metric("Avg B&H Gain", f"{metrics['buy_hold_gain']:,.2f}%")
                 st.metric("Avg B&H Monthly", f"{metrics['buy_hold_monthly']:,.2f}%")
+            
+            # Add detailed runs table
+            if "all_runs" in metrics:
+                with st.expander("View All Test Runs", expanded=False):
+                    df = pd.DataFrame(metrics["all_runs"])
+                    # Format numeric columns
+                    df = df.round(2)
+                    for col in df.columns:
+                        if col in ["final_investment", "final_value", "absolute_gain"]:
+                            df[col] = df[col].apply(lambda x: f"${x:,.2f}")
+                        elif col in ["percentage_gain", "monthly_gain", "price_drawdown", 
+                                   "value_drawdown", "buy_hold_gain", "buy_hold_monthly"]:
+                            df[col] = df[col].apply(lambda x: f"{x}%")
+                    st.dataframe(df)
 
 def main():
     st.set_page_config(page_title="DCA Calculator", page_icon="📈", layout="wide")
