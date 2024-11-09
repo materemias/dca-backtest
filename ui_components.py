@@ -2,16 +2,18 @@
 from datetime import date
 from typing import Dict, List, Tuple
 
+import plotly.express as px
+
 # Third-party imports
 import streamlit as st
 import yfinance as yf
-import plotly.express as px
 
 # Constants
 DEFAULT_TICKERS = ["BTC-USD", "ETH-USD", "^GSPC", "^NDX", "QQQ3.L", "AAAU"]
 DEFAULT_START_DATE = date(2022, 1, 1)
 DEFAULT_INITIAL_INVESTMENT = 100
 DEFAULT_PERIODIC_INVESTMENT = 100
+
 
 def initialize_session_state():
     """Initialize session state variables."""
@@ -24,6 +26,7 @@ def initialize_session_state():
     if "multiselect_key" not in st.session_state:
         st.session_state.multiselect_key = 0
 
+
 def get_ticker_info(ticker: str) -> str:
     """Get formatted display name for a ticker."""
     try:
@@ -31,6 +34,7 @@ def get_ticker_info(ticker: str) -> str:
         return f"{info.get('longName', ticker)} ({ticker})"
     except:
         return ticker
+
 
 def validate_ticker(ticker: str) -> Tuple[bool, yf.Ticker]:
     """Validate a ticker symbol."""
@@ -41,14 +45,11 @@ def validate_ticker(ticker: str) -> Tuple[bool, yf.Ticker]:
     except:
         return False, None
 
+
 def handle_new_ticker_form():
     """Handle the new ticker form submission."""
     with st.form("add_ticker_form"):
-        new_ticker = st.text_input(
-            "Add new ticker",
-            placeholder="Enter Yahoo Finance ticker (e.g. AAPL)",
-            help="Enter a valid Yahoo Finance ticker symbol"
-        )
+        new_ticker = st.text_input("Add new ticker", placeholder="Enter Yahoo Finance ticker (e.g. AAPL)", help="Enter a valid Yahoo Finance ticker symbol")
         submitted = st.form_submit_button("Add Ticker")
 
         if submitted and new_ticker:
@@ -61,7 +62,7 @@ def handle_new_ticker_form():
                         new_display_name = f"{info.get('longName', new_ticker)} ({new_ticker})"
                     except:
                         new_display_name = new_ticker
-                    
+
                     if "selected_formatted_names" not in st.session_state:
                         st.session_state.selected_formatted_names = []
                     st.session_state.selected_formatted_names.append(new_display_name)
@@ -72,15 +73,17 @@ def handle_new_ticker_form():
             else:
                 st.error("Invalid ticker symbol - no data available")
 
+
 def create_color_mapping(tickers: List[str]) -> Dict[str, str]:
     """Create color mapping for tickers."""
-    colors = px.colors.qualitative.Set3[:len(tickers)]
+    colors = px.colors.qualitative.Set3[: len(tickers)]
     return dict(zip(tickers, colors))
+
 
 def display_legend(selected_formatted: List[str], name_to_ticker: Dict[str, str], color_map: Dict[str, str]):
     """Display the legend with colored rectangles."""
     st.subheader("Legend")
-    
+
     for name in selected_formatted:
         ticker = name_to_ticker[name]
         try:
@@ -96,75 +99,42 @@ def display_legend(selected_formatted: List[str], name_to_ticker: Dict[str, str]
             )
         except:
             st.markdown(f"{ticker}", unsafe_allow_html=True)
-    
+
     st.markdown("<hr style='margin-top: 10px; margin-bottom: 10px;'>", unsafe_allow_html=True)
+
 
 def get_investment_parameters() -> Dict:
     """Get investment parameters from user input."""
     col1, col2 = st.columns(2)
     with col1:
-        start_date = st.date_input(
-            "Start date",
-            value=DEFAULT_START_DATE,
-            min_value=date(2010, 1, 1),
-            max_value=date.today()
-        )
+        start_date = st.date_input("Start date", value=DEFAULT_START_DATE, min_value=date(2010, 1, 1), max_value=date.today())
     with col2:
         if start_date > st.session_state.end_date:
             st.session_state.end_date = start_date
-        
-        end_date = st.date_input(
-            "End date",
-            value=st.session_state.end_date,
-            min_value=start_date,
-            max_value=date.today()
-        )
+
+        end_date = st.date_input("End date", value=st.session_state.end_date, min_value=start_date, max_value=date.today())
         st.session_state.end_date = end_date
 
     col3, col4 = st.columns(2)
     with col3:
-        initial_investment = st.number_input(
-            "Initial investment ($)",
-            min_value=0,
-            value=DEFAULT_INITIAL_INVESTMENT,
-            step=100
-        )
+        initial_investment = st.number_input("Initial investment ($)", min_value=0, value=DEFAULT_INITIAL_INVESTMENT, step=100)
     with col4:
-        periodic_investment = st.number_input(
-            "Periodic investment ($)",
-            min_value=0,
-            value=DEFAULT_PERIODIC_INVESTMENT,
-            step=100
-        )
+        periodic_investment = st.number_input("Periodic investment ($)", min_value=0, value=DEFAULT_PERIODIC_INVESTMENT, step=100)
 
-    periodicity = st.selectbox(
-        "Investment frequency",
-        options=["Daily", "Weekly", "Monthly"],
-        index=2
-    )
+    periodicity = st.selectbox("Investment frequency", options=["Daily", "Weekly", "Monthly"], index=2)
 
     # Add randomized testing controls
     date_diff = end_date - start_date
     run_random_tests = False
     num_tests = 100  # default value
     show_individual_runs = False  # default value
-    
+
     if date_diff.days >= 730:  # 2 years
         st.sidebar.markdown("### Random Tests")
-        col_random1, col_random2 = st.sidebar.columns(2)
-        with col_random1:
-            num_tests = st.number_input("Number of random tests", 
-                                      min_value=10, 
-                                      max_value=1000, 
-                                      value=100, 
-                                      step=10)
-        with col_random2:
-            show_individual_runs = st.checkbox("Show individual runs", 
-                                            value=False,
-                                            help="Display detailed results for each test run")
-        
-        if st.sidebar.button("Run Random Tests", 
-                        help="Run multiple tests with random date ranges"):
+        num_tests = st.number_input("Number of random tests", min_value=10, max_value=1000, value=100, step=10)
+        show_individual_runs = st.checkbox("Show individual runs", value=False, help="Display detailed results for each test run")
+
+        if st.sidebar.button("Run Random Tests", help="Run multiple tests with random date ranges"):
             run_random_tests = True
 
     return {
@@ -175,8 +145,9 @@ def get_investment_parameters() -> Dict:
         "periodicity": periodicity,
         "run_random_tests": run_random_tests,
         "num_tests": num_tests,
-        "show_individual_runs": show_individual_runs
+        "show_individual_runs": show_individual_runs,
     }
+
 
 def apply_custom_styling(selected_formatted: List[str], name_to_ticker: Dict[str, str], color_map: Dict[str, str]):
     """Apply custom styling to the multiselect."""
@@ -206,9 +177,11 @@ def apply_custom_styling(selected_formatted: List[str], name_to_ticker: Dict[str
 
     st.markdown(f"<style>{selected_styles}</style>", unsafe_allow_html=True)
 
+
 def truncate_name(name: str, max_length: int = 20) -> str:
     """Truncate name if longer than max_length."""
     return f"{name[:max_length-3]}..." if len(name) > max_length else name
+
 
 def create_ui() -> Dict:
     """Create the main user interface."""
@@ -228,7 +201,7 @@ def create_ui() -> Dict:
             options=formatted_options,
             default=st.session_state.selected_formatted_names if st.session_state.selected_formatted_names else [formatted_options[0]],
             help="Enter valid Yahoo Finance ticker symbols",
-            key=f'ticker_multiselect_{st.session_state.multiselect_key}'
+            key=f"ticker_multiselect_{st.session_state.multiselect_key}",
         )
 
         st.session_state.selected_formatted_names = selected_formatted
@@ -248,5 +221,5 @@ def create_ui() -> Dict:
         "color_map": color_map,
         "run_random_tests": params.get("run_random_tests", False),
         "num_tests": params.get("num_tests", 100),
-        "show_individual_runs": params.get("show_individual_runs", False)
+        "show_individual_runs": params.get("show_individual_runs", False),
     }

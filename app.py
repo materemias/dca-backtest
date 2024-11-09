@@ -67,10 +67,11 @@ def display_random_test_results(random_results, params):
                 st.metric("Avg Absolute Gain", f"${metrics['absolute_gain']:,.2f}")
                 st.metric("Avg Total Units", f"{metrics['total_units']:,.6f}")
             with col3:
-                st.metric("Avg Monthly Gain", f"{metrics['monthly_gain']:,.2f}%")
-                st.metric("Avg Price DD", f"{metrics['price_drawdown']:,.2f}%")
+                st.metric("Avg Max Price DD", f"{metrics['price_drawdown']:,.2f}%")
+                st.metric("Avg Max Value DD", f"{metrics['value_drawdown']:,.2f}%")
             with col4:
-                st.metric("Avg Value DD", f"{metrics['value_drawdown']:,.2f}%")
+                st.metric("Avg DCA % Gain", f"{metrics['percentage_gain']:,.2f}%")
+                st.metric("Avg DCA Monthly Gain", f"{metrics['monthly_gain']:,.2f}%")
             with col5:
                 st.metric("Avg B&H Gain", f"{metrics['buy_hold_gain']:,.2f}%")
                 st.metric("Avg B&H Monthly", f"{metrics['buy_hold_monthly']:,.2f}%")
