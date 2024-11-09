@@ -246,13 +246,40 @@ def create_comparison_charts(asset_data: dict, results: dict, params: dict):
         except:
             display_name = asset
 
+        # Calculate running maximum value and drawdown for hover data
+        running_max = snapshots["total_value"].expanding().max()
+        drawdown = ((snapshots["total_value"] - running_max) / running_max) * 100
+
         # Add investment line using the actual tracked total_investment
-        fig1.add_trace(go.Scatter(x=snapshots["date"], y=snapshots["total_investment"], name=f"{display_name} - Investment", line=dict(dash="dash", color=color)))
+        fig1.add_trace(go.Scatter(
+            x=snapshots["date"], 
+            y=snapshots["total_investment"], 
+            name=f"{display_name} - Investment", 
+            line=dict(dash="dash", color=color)
+        ))
 
-        # Add value line using the actual tracked total_value
-        fig1.add_trace(go.Scatter(x=snapshots["date"], y=snapshots["total_value"], name=f"{display_name} - Value", line=dict(color=color)))
+        # Add value line using the actual tracked total_value with drawdown in hover
+        fig1.add_trace(go.Scatter(
+            x=snapshots["date"], 
+            y=snapshots["total_value"], 
+            name=f"{display_name} - Value", 
+            line=dict(color=color),
+            hovertemplate=(
+                "<b>%{fullData.name}</b><br>" +
+                "Date: %{x}<br>" +
+                "Value: $%{y:,.2f}<br>" +
+                "Drawdown: %{customdata:.2f}%<br>" +
+                "<extra></extra>"
+            ),
+            customdata=drawdown
+        ))
 
-    fig1.update_layout(title="Investment vs. Value Over Time", xaxis_title="Date", yaxis_title="Value ($)", hovermode="x unified")
+    fig1.update_layout(
+        title="Investment vs. Value Over Time", 
+        xaxis_title="Date", 
+        yaxis_title="Value ($)", 
+        hovermode="x unified"
+    )
 
     # Create performance comparison chart
     fig2 = go.Figure()
