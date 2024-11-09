@@ -147,9 +147,11 @@ def get_investment_parameters() -> Dict:
     date_diff = end_date - start_date
     run_random_tests = False
     num_tests = 100  # default value
+    show_individual_runs = False  # default value
     
     if date_diff.days >= 730:  # 2 years
-        col_random1, col_random2 = st.columns(2)
+        st.sidebar.markdown("### Random Tests")
+        col_random1, col_random2 = st.sidebar.columns(2)
         with col_random1:
             num_tests = st.number_input("Number of random tests", 
                                       min_value=10, 
@@ -157,9 +159,13 @@ def get_investment_parameters() -> Dict:
                                       value=100, 
                                       step=10)
         with col_random2:
-            if st.button("Run Random Tests", 
+            show_individual_runs = st.checkbox("Show individual runs", 
+                                            value=False,
+                                            help="Display detailed results for each test run")
+        
+        if st.sidebar.button("Run Random Tests", 
                         help="Run multiple tests with random date ranges"):
-                run_random_tests = True
+            run_random_tests = True
 
     return {
         "start_date": start_date,
@@ -168,7 +174,8 @@ def get_investment_parameters() -> Dict:
         "periodic_investment": periodic_investment,
         "periodicity": periodicity,
         "run_random_tests": run_random_tests,
-        "num_tests": num_tests
+        "num_tests": num_tests,
+        "show_individual_runs": show_individual_runs
     }
 
 def apply_custom_styling(selected_formatted: List[str], name_to_ticker: Dict[str, str], color_map: Dict[str, str]):

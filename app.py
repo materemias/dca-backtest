@@ -48,7 +48,7 @@ def display_detailed_results(results, color_map):
                 st.metric("B&H Monthly Gain", f"{metrics['buy_hold_monthly']:,.2f}%")
 
 
-def display_random_test_results(random_results, color_map):
+def display_random_test_results(random_results, params):
     """Display results from randomized tests."""
     st.header("Random Test Results (Averages)")
     
@@ -80,8 +80,8 @@ def display_random_test_results(random_results, color_map):
                 st.metric("Avg B&H Gain", f"{metrics['buy_hold_gain']:,.2f}%")
                 st.metric("Avg B&H Monthly", f"{metrics['buy_hold_monthly']:,.2f}%")
             
-            # Add detailed runs table
-            if "all_runs" in metrics:
+            # Add detailed runs table if enabled
+            if params["show_individual_runs"] and "all_runs" in metrics:
                 st.markdown("#### Individual Test Runs")
                 df = pd.DataFrame(metrics["all_runs"])
                 # Format numeric columns
@@ -121,7 +121,7 @@ def main():
         if params.get("run_random_tests"):
             with st.spinner(f'Running {params["num_tests"]} random tests...'):
                 random_results = run_randomized_tests(asset_data, params, params["num_tests"])
-                display_random_test_results(random_results, params["color_map"])
+                display_random_test_results(random_results, params)  # Pass entire params instead of just color_map
 
 
 if __name__ == "__main__":
