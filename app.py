@@ -6,7 +6,8 @@ import yfinance as yf
 
 from chart_creators import create_comparison_charts, create_price_chart
 from data_fetcher import fetch_historical_data
-from dca_calculator import calculate_multi_asset_dca, run_randomized_tests
+from dca_core import calculate_multi_asset_dca
+from dca_analysis import run_randomized_tests
 from ui_controls import create_ui
 
 from config import DEFAULT_TICKERS  # Only import what's needed here
