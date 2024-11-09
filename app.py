@@ -6,7 +6,7 @@ import yfinance as yf
 
 from chart_creators import create_comparison_charts, create_price_chart
 from data_fetcher import fetch_historical_data
-from dca_calculator import calculate_multi_asset_dca
+from dca_calculator import calculate_multi_asset_dca, run_randomized_tests
 
 # Local imports
 from ui_components import create_ui
