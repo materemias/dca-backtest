@@ -7,11 +7,6 @@ import plotly.express as px
 import streamlit as st
 import yfinance as yf
 
-# Constants
-DEFAULT_TICKERS = ["BTC-USD", "ETH-USD", "^GSPC", "^NDX", "QQQ3.L", "AAAU"]
-DEFAULT_START_DATE = date(2022, 1, 1)
-DEFAULT_INITIAL_INVESTMENT = 100
-DEFAULT_PERIODIC_INVESTMENT = 100
 
 def initialize_session_state():
     """Initialize session state variables."""
@@ -24,6 +19,7 @@ def initialize_session_state():
     if "multiselect_key" not in st.session_state:
         st.session_state.multiselect_key = 0
 
+
 def get_ticker_info(ticker: str) -> str:
     """Get formatted display name for a ticker."""
     try:
@@ -31,6 +27,7 @@ def get_ticker_info(ticker: str) -> str:
         return f"{info.get('longName', ticker)} ({ticker})"
     except:
         return ticker
+
 
 def validate_ticker(ticker: str) -> Tuple[bool, yf.Ticker]:
     """Validate a ticker symbol."""
@@ -41,10 +38,12 @@ def validate_ticker(ticker: str) -> Tuple[bool, yf.Ticker]:
     except:
         return False, None
 
+
 def create_color_mapping(tickers: List[str]) -> Dict[str, str]:
     """Create color mapping for tickers."""
     colors = px.colors.qualitative.Set3[: len(tickers)]
     return dict(zip(tickers, colors))
+
 
 def truncate_name(name: str, max_length: int = 20) -> str:
     """Truncate name if longer than max_length."""

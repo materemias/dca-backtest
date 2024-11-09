@@ -1,12 +1,12 @@
-from datetime import date, timedelta
+from datetime import date
 from typing import Dict
 
 import streamlit as st
 import yfinance as yf
 
-from ui_core import (DEFAULT_INITIAL_INVESTMENT, DEFAULT_PERIODIC_INVESTMENT,
-                    DEFAULT_START_DATE, create_color_mapping, get_ticker_info,
-                    initialize_session_state, truncate_name, validate_ticker)
+from app import DEFAULT_INITIAL_INVESTMENT, DEFAULT_PERIODIC_INVESTMENT, DEFAULT_START_DATE
+from ui_core import create_color_mapping, get_ticker_info, initialize_session_state, truncate_name, validate_ticker
+
 
 def handle_new_ticker_form():
     """Handle the new ticker form submission."""
@@ -35,6 +35,7 @@ def handle_new_ticker_form():
             else:
                 st.error("Invalid ticker symbol - no data available")
 
+
 def display_legend(selected_formatted, name_to_ticker, color_map):
     """Display the legend with colored rectangles."""
     st.subheader("Legend")
@@ -56,6 +57,7 @@ def display_legend(selected_formatted, name_to_ticker, color_map):
             st.markdown(f"{ticker}", unsafe_allow_html=True)
 
     st.markdown("<hr style='margin-top: 10px; margin-bottom: 10px;'>", unsafe_allow_html=True)
+
 
 def apply_custom_styling(selected_formatted: List[str], name_to_ticker: Dict[str, str], color_map: Dict[str, str]):
     """Apply custom styling to the multiselect."""
@@ -84,6 +86,7 @@ def apply_custom_styling(selected_formatted: List[str], name_to_ticker: Dict[str
         """
 
     st.markdown(f"<style>{selected_styles}</style>", unsafe_allow_html=True)
+
 
 def get_investment_parameters() -> Dict:
     """Get investment parameters from user input."""
@@ -130,6 +133,7 @@ def get_investment_parameters() -> Dict:
         "show_individual_runs": show_individual_runs,
     }
 
+
 def create_ui() -> Dict:
     """Create the main user interface."""
     st.title("DCA Investment Calculator")
@@ -164,7 +168,7 @@ def create_ui() -> Dict:
         "end_date": params["end_date"],
         "initial_investment": params["initial_investment"],
         "periodic_investment": params["periodic_investment"],
-        "periodicity":  params["periodicity"],
+        "periodicity": params["periodicity"],
         "color_map": color_map,
         "run_random_tests": params.get("run_random_tests", False),
         "num_tests": params.get("num_tests", 100),

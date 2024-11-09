@@ -1,3 +1,5 @@
+from datetime import date
+
 import pandas as pd
 import streamlit as st
 import yfinance as yf
@@ -5,7 +7,13 @@ import yfinance as yf
 from chart_creators import create_comparison_charts, create_price_chart
 from data_fetcher import fetch_historical_data
 from dca_calculator import calculate_multi_asset_dca, run_randomized_tests
-from ui_components import create_ui
+from ui_controls import create_ui
+
+# Constants
+DEFAULT_TICKERS = ["BTC-USD", "ETH-USD", "^GSPC", "^NDX", "QQQ3.L", "AAAU"]
+DEFAULT_START_DATE = date(2022, 1, 1)
+DEFAULT_INITIAL_INVESTMENT = 100
+DEFAULT_PERIODIC_INVESTMENT = 100
 
 
 def display_detailed_results(results, color_map):
