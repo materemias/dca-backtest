@@ -38,7 +38,7 @@ def validate_ticker(ticker: str) -> Tuple[bool, yf.Ticker]:
     """Validate a ticker symbol."""
     try:
         ticker_obj = yf.Ticker(ticker)
-        test_data = ticker_obj.history(period="1d")
+        test_data = ticker_obj.history(period="5d")
         return not test_data.empty, ticker_obj
     except:
         return False, None
