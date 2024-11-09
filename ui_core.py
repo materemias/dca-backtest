@@ -7,6 +7,7 @@ import plotly.express as px
 import streamlit as st
 import yfinance as yf
 
+from config import DEFAULT_TICKERS
 
 def initialize_session_state():
     """Initialize session state variables."""
