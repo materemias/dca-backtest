@@ -147,15 +147,19 @@ def create_ui() -> Dict:
         formatted_options = [get_ticker_info(ticker) for ticker in st.session_state.default_tickers]
         name_to_ticker = dict(zip(formatted_options, st.session_state.default_tickers))
 
+        # Initialize default selection if not already set
+        if "selected_formatted_names" not in st.session_state:
+            st.session_state.selected_formatted_names = [formatted_options[0]]
+
+        # Create a callback to update the session state
+        def on_change():
+            st.session_state.selected_formatted_names = st.session_state[f"ticker_multiselect_{st.session_state.multiselect_key}"]
+
+        # Use the multiselect with a callback
         selected_formatted = st.multiselect(
-            "Enter ticker symbols",
-            options=formatted_options,
-            default=st.session_state.selected_formatted_names if st.session_state.selected_formatted_names else [formatted_options[0]],
-            help="Enter valid Yahoo Finance ticker symbols",
-            key=f"ticker_multiselect_{st.session_state.multiselect_key}",
+            "Enter ticker symbols", options=formatted_options, default=st.session_state.selected_formatted_names, key=f"ticker_multiselect_{st.session_state.multiselect_key}", on_change=on_change
         )
 
-        st.session_state.selected_formatted_names = selected_formatted
         selected_tickers = [name_to_ticker[name] for name in selected_formatted]
 
         display_legend(selected_formatted, name_to_ticker, color_map)

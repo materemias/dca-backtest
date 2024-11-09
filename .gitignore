@@ -5,4 +5,4 @@ cache/*
 __pycache__/*
 
 description.md
-app.context
+*.context

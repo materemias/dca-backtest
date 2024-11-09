@@ -9,6 +9,7 @@ import yfinance as yf
 
 from config import DEFAULT_TICKERS
 
+
 def initialize_session_state():
     """Initialize session state variables."""
     if "default_tickers" not in st.session_state:
