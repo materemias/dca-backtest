@@ -1,5 +1,6 @@
 from typing import Dict
-from datetime import date
+from datetime import date, timedelta
+import random
 
 import pandas as pd
 
@@ -163,3 +164,52 @@ def calculate_multi_asset_dca(asset_data: Dict[str, pd.DataFrame], params: Dict)
         )
 
     return results
+
+def run_randomized_tests(asset_data: Dict[str, pd.DataFrame], params: Dict, num_tests: int) -> Dict[str, Dict]:
+    """Run multiple random date range tests and return average metrics"""
+    start_date = params["start_date"]
+    end_date = params["end_date"]
+    min_period = timedelta(days=365)  # Minimum 1 year period
+    total_period = end_date - start_date
+    
+    results_by_asset = {}
+    
+    for asset, df in asset_data.items():
+        all_metrics = []
+        
+        for _ in range(num_tests):
+            # Generate random start and end dates
+            test_period = random.uniform(365, (total_period.days - 1))
+            random_start_offset = random.uniform(0, total_period.days - test_period)
+            
+            test_start = start_date + timedelta(days=random_start_offset)
+            test_end = test_start + timedelta(days=test_period)
+            
+            # Create test parameters
+            test_params = params.copy()
+            test_params["start_date"] = test_start
+            test_params["end_date"] = test_end
+            
+            # Calculate metrics for this test
+            metrics = calculate_dca_metrics(df, params["initial_investment"], 
+                                         params["periodic_investment"], 
+                                         params["periodicity"],
+                                         test_end)
+            all_metrics.append(metrics)
+        
+        # Calculate averages
+        avg_metrics = {
+            "final_investment": sum(m["final_investment"] for m in all_metrics) / num_tests,
+            "final_value": sum(m["final_value"] for m in all_metrics) / num_tests,
+            "absolute_gain": sum(m["absolute_gain"] for m in all_metrics) / num_tests,
+            "percentage_gain": sum(m["percentage_gain"] for m in all_metrics) / num_tests,
+            "monthly_gain": sum(m["monthly_gain"] for m in all_metrics) / num_tests,
+            "price_drawdown": sum(m["price_drawdown"] for m in all_metrics) / num_tests,
+            "value_drawdown": sum(m["value_drawdown"] for m in all_metrics) / num_tests,
+            "buy_hold_gain": sum(m["buy_hold_gain"] for m in all_metrics) / num_tests,
+            "buy_hold_monthly": sum(m["buy_hold_monthly"] for m in all_metrics) / num_tests,
+        }
+        
+        results_by_asset[asset] = avg_metrics
+    
+    return results_by_asset
