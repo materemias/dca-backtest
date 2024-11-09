@@ -383,6 +383,9 @@ def main():
                 with col3:
                     st.metric("Percentage Gain", f"{metrics['percentage_gain']:,.2f}%")
                     st.metric("Avg Monthly Gain", f"{metrics['monthly_gain']:,.2f}%")
+                with col4:
+                    st.metric("Price Max Drawdown", f"{metrics['price_drawdown']:,.2f}%")
+                    st.metric("Value Max Drawdown", f"{metrics['value_drawdown']:,.2f}%")
 
 
 if __name__ == "__main__":
