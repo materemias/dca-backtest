@@ -239,4 +239,6 @@ def create_ui() -> Dict:
         "periodic_investment": params["periodic_investment"],
         "periodicity": params["periodicity"],
         "color_map": color_map,
+        "run_random_tests": params.get("run_random_tests", False),
+        "num_tests": params.get("num_tests", 100)
     }
