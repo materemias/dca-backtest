@@ -373,7 +373,7 @@ def main():
 
             # Create the expander with the colored title
             with st.expander(display_name, expanded=True):
-                col1, col2, col3 = st.columns(3)
+                col1, col2, col3, col4 = st.columns(4)
                 with col1:
                     st.metric("Final Investment", f"${metrics['final_investment']:,.2f}")
                     st.metric("Final Value", f"${metrics['final_value']:,.2f}")
