@@ -1,16 +1,13 @@
-from datetime import date
-
 import pandas as pd
 import streamlit as st
 import yfinance as yf
 
 from chart_creators import create_comparison_charts, create_price_chart
 from data_fetcher import fetch_historical_data
-from dca_core import calculate_multi_asset_dca
 from dca_analysis import run_randomized_tests
+from dca_core import calculate_multi_asset_dca
 from ui_controls import create_ui
 
-from config import DEFAULT_TICKERS  # Only import what's needed here
 
 def display_detailed_results(results, color_map):
     """Display detailed metrics for each asset."""
@@ -35,7 +32,7 @@ def display_detailed_results(results, color_map):
                 st.metric("Final Value", f"${metrics['final_value']:,.2f}")
             with col2:
                 st.metric("Absolute Gain", f"${metrics['absolute_gain']:,.2f}")
-                st.metric("Total Units", f"{metrics['total_units']:,.6f}")
+                st.metric("Total Units", f"{metrics['total_units']:,.2f}")
             with col3:
                 st.metric("Price Max Drawdown", f"{metrics['price_drawdown']:,.2f}%")
                 st.metric("Value Max Drawdown", f"{metrics['value_drawdown']:,.2f}%")
@@ -69,7 +66,7 @@ def display_random_test_results(random_results, params):
                 st.metric("Avg Final Value", f"${metrics['final_value']:,.2f}")
             with col2:
                 st.metric("Avg Absolute Gain", f"${metrics['absolute_gain']:,.2f}")
-                st.metric("Avg Total Units", f"{metrics['total_units']:,.6f}")
+                st.metric("Avg Total Units", f"{metrics['total_units']:,.2f}")
             with col3:
                 st.metric("Avg Max Price DD", f"{metrics['price_drawdown']:,.2f}%")
                 st.metric("Avg Max Value DD", f"{metrics['value_drawdown']:,.2f}%")
