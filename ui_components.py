@@ -2,17 +2,17 @@
 from datetime import date
 from typing import Dict, List, Tuple
 
-import plotly.express as px
-
 # Third-party imports
+import plotly.express as px
 import streamlit as st
 import yfinance as yf
 
-# Constants
-DEFAULT_TICKERS = ["BTC-USD", "ETH-USD", "^GSPC", "^NDX", "QQQ3.L", "AAAU"]
-DEFAULT_START_DATE = date(2022, 1, 1)
-DEFAULT_INITIAL_INVESTMENT = 100
-DEFAULT_PERIODIC_INVESTMENT = 100
+from ui_core import (DEFAULT_TICKERS, DEFAULT_START_DATE, 
+                     DEFAULT_INITIAL_INVESTMENT, DEFAULT_PERIODIC_INVESTMENT,
+                     initialize_session_state, get_ticker_info, 
+                     validate_ticker, create_color_mapping, truncate_name)
+from ui_controls import handle_new_ticker_form, display_legend, 
+                        apply_custom_styling, get_investment_parameters
 
 
 def initialize_session_state():
