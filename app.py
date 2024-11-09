@@ -3,6 +3,7 @@
 # Third-party imports
 import streamlit as st
 import yfinance as yf
+import pandas as pd
 
 from chart_creators import create_comparison_charts, create_price_chart
 from data_fetcher import fetch_historical_data
