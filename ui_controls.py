@@ -4,7 +4,8 @@ from typing import Dict
 import streamlit as st
 import yfinance as yf
 
-from app import DEFAULT_INITIAL_INVESTMENT, DEFAULT_PERIODIC_INVESTMENT, DEFAULT_START_DATE
+from config import (DEFAULT_INITIAL_INVESTMENT, DEFAULT_PERIODIC_INVESTMENT,
+                   DEFAULT_START_DATE)
 from ui_core import create_color_mapping, get_ticker_info, initialize_session_state, truncate_name, validate_ticker
 
 

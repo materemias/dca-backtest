@@ -9,12 +9,7 @@ from data_fetcher import fetch_historical_data
 from dca_calculator import calculate_multi_asset_dca, run_randomized_tests
 from ui_controls import create_ui
 
-# Constants
-DEFAULT_TICKERS = ["BTC-USD", "ETH-USD", "^GSPC", "^NDX", "QQQ3.L", "AAAU"]
-DEFAULT_START_DATE = date(2022, 1, 1)
-DEFAULT_INITIAL_INVESTMENT = 100
-DEFAULT_PERIODIC_INVESTMENT = 100
-
+from config import DEFAULT_TICKERS  # Only import what's needed here
 
 def display_detailed_results(results, color_map):
     """Display detailed metrics for each asset."""
