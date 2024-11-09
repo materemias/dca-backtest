@@ -1,15 +1,16 @@
 # Standard library imports
-from datetime import date
 
 # Third-party imports
 import streamlit as st
 import yfinance as yf
 
-# Local imports
-from ui_components import create_ui
+from chart_creators import create_comparison_charts, create_price_chart
 from data_fetcher import fetch_historical_data
 from dca_calculator import calculate_multi_asset_dca
-from chart_creators import create_comparison_charts, create_price_chart
+
+# Local imports
+from ui_components import create_ui
+
 
 def display_detailed_results(results, color_map):
     """Display detailed metrics for each asset."""
@@ -36,14 +37,15 @@ def display_detailed_results(results, color_map):
                 st.metric("Absolute Gain", f"${metrics['absolute_gain']:,.2f}")
                 st.metric("Total Units", f"{metrics['total_units']:,.6f}")
             with col3:
-                st.metric("DCA % Gain", f"{metrics['percentage_gain']:,.2f}%")
-                st.metric("DCA Monthly Gain", f"{metrics['monthly_gain']:,.2f}%")
-            with col4:
                 st.metric("Price Max Drawdown", f"{metrics['price_drawdown']:,.2f}%")
                 st.metric("Value Max Drawdown", f"{metrics['value_drawdown']:,.2f}%")
+            with col4:
+                st.metric("DCA % Gain", f"{metrics['percentage_gain']:,.2f}%")
+                st.metric("DCA Monthly Gain", f"{metrics['monthly_gain']:,.2f}%")
             with col5:
-                st.metric("Buy & Hold Gain", f"{metrics['buy_hold_gain']:,.2f}%")
+                st.metric("Buy & Hold % Gain", f"{metrics['buy_hold_gain']:,.2f}%")
                 st.metric("B&H Monthly Gain", f"{metrics['buy_hold_monthly']:,.2f}%")
+
 
 def main():
     st.set_page_config(page_title="DCA Calculator", page_icon="📈", layout="wide")
@@ -71,6 +73,7 @@ def main():
 
         # Display detailed metrics
         display_detailed_results(results, params["color_map"])
+
 
 if __name__ == "__main__":
     main()
