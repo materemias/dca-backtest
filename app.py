@@ -1,10 +1,13 @@
 # Standard library imports
 from datetime import date
-from typing import Dict
+from typing import Dict, List, Tuple
 
 # Third-party imports
 import streamlit as st
 import yfinance as yf
+import plotly.express as px
+import plotly.graph_objects as go
+import pandas as pd
 
 # Local imports
 from ui_components import create_ui
