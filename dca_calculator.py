@@ -1,6 +1,6 @@
-from typing import Dict
-from datetime import date, timedelta
 import random
+from datetime import date, timedelta
+from typing import Dict
 
 import pandas as pd
 
@@ -22,29 +22,31 @@ def calculate_price_drawdown(df: pd.DataFrame) -> float:
     """Calculate the maximum drawdown percentage from peak price."""
     if df.empty:
         return 0.0
-        
+
     # Calculate running maximum
-    running_max = df['Close'].expanding().max()
+    running_max = df["Close"].expanding().max()
     # Calculate drawdown percentage
-    drawdown = ((df['Close'] - running_max) / running_max) * 100
+    drawdown = ((df["Close"] - running_max) / running_max) * 100
     # Get the maximum drawdown
     max_drawdown = drawdown.min()
-    
+
     return round(abs(max_drawdown), 2)
+
 
 def calculate_value_drawdown(snapshots: pd.DataFrame) -> float:
     """Calculate the maximum drawdown percentage from peak portfolio value."""
     if snapshots.empty:
         return 0.0
-        
+
     # Calculate running maximum of total_value
-    running_max = snapshots['total_value'].expanding().max()
+    running_max = snapshots["total_value"].expanding().max()
     # Calculate drawdown percentage
-    drawdown = ((snapshots['total_value'] - running_max) / running_max) * 100
+    drawdown = ((snapshots["total_value"] - running_max) / running_max) * 100
     # Get the maximum drawdown
     max_drawdown = drawdown.min()
-    
+
     return round(abs(max_drawdown), 2)
+
 
 def calculate_dca_metrics(df: pd.DataFrame, initial_investment: float, periodic_investment: float, periodicity: str, end_date: date) -> Dict:
     """Calculate DCA investment metrics"""
@@ -54,13 +56,13 @@ def calculate_dca_metrics(df: pd.DataFrame, initial_investment: float, periodic_
 
     # Resample data according to investment frequency
     resampled_df = resample_price_data(df, periodicity)
-    
+
     # Remove rows with NaN prices
-    resampled_df = resampled_df.dropna(subset=['Close'])
+    resampled_df = resampled_df.dropna(subset=["Close"])
 
     # Calculate number of periods
     num_periods = len(resampled_df)
-    
+
     if num_periods == 0:
         return {
             "final_investment": 0,
@@ -86,7 +88,7 @@ def calculate_dca_metrics(df: pd.DataFrame, initial_investment: float, periodic_
     buy_hold_units = total_investment_amount / initial_price
     buy_hold_value = buy_hold_units * final_price
     buy_hold_gain = ((buy_hold_value / total_investment_amount) - 1) * 100
-    
+
     # Calculate buy & hold monthly gain
     months_elapsed = (resampled_df["date"].iloc[-1] - resampled_df["date"].iloc[0]).days / 30.44
     buy_hold_monthly = (((buy_hold_value / total_investment_amount) ** (1 / months_elapsed)) - 1) * 100
@@ -114,13 +116,7 @@ def calculate_dca_metrics(df: pd.DataFrame, initial_investment: float, periodic_
         value_snapshots.append(total_units_so_far * price)
 
     # Create snapshots dataframe
-    snapshots = pd.DataFrame({
-        "date": resampled_df["date"], 
-        "total_investment": investment_snapshots, 
-        "total_value": value_snapshots, 
-        "total_units": cumulative_units, 
-        "price": resampled_df["Close"]
-    })
+    snapshots = pd.DataFrame({"date": resampled_df["date"], "total_investment": investment_snapshots, "total_value": value_snapshots, "total_units": cumulative_units, "price": resampled_df["Close"]})
 
     # Calculate final metrics
     final_value = value_snapshots[-1]
@@ -155,47 +151,38 @@ def calculate_multi_asset_dca(asset_data: Dict[str, pd.DataFrame], params: Dict)
     results = {}
 
     for asset, df in asset_data.items():
-        results[asset] = calculate_dca_metrics(
-            df, 
-            params["initial_investment"], 
-            params["periodic_investment"], 
-            params["periodicity"],
-            params["end_date"]
-        )
+        results[asset] = calculate_dca_metrics(df, params["initial_investment"], params["periodic_investment"], params["periodicity"], params["end_date"])
 
     return results
+
 
 def run_randomized_tests(asset_data: Dict[str, pd.DataFrame], params: Dict, num_tests: int) -> Dict[str, Dict]:
     """Run multiple random date range tests and return average metrics"""
     start_date = params["start_date"]
     end_date = params["end_date"]
-    min_period = timedelta(days=365)  # Minimum 1 year period
     total_period = end_date - start_date
-    
+
     results_by_asset = {}
-    
+
     for asset, df in asset_data.items():
         all_metrics = []
-        
+
         for test_num in range(num_tests):
             # Generate random start and end dates
             test_period = random.uniform(365, (total_period.days - 1))
             random_start_offset = random.uniform(0, total_period.days - test_period)
-            
+
             test_start = start_date + timedelta(days=random_start_offset)
             test_end = test_start + timedelta(days=test_period)
-            
+
             # Create test parameters
             test_params = params.copy()
             test_params["start_date"] = test_start
             test_params["end_date"] = test_end
-            
+
             # Calculate metrics for this test
-            metrics = calculate_dca_metrics(df, params["initial_investment"], 
-                                         params["periodic_investment"], 
-                                         params["periodicity"],
-                                         test_end)
-            
+            metrics = calculate_dca_metrics(df, params["initial_investment"], params["periodic_investment"], params["periodicity"], test_end)
+
             # Add test number and dates to metrics
             metrics_for_table = {
                 "test_num": test_num + 1,
@@ -204,31 +191,31 @@ def run_randomized_tests(asset_data: Dict[str, pd.DataFrame], params: Dict, num_
                 "final_investment": metrics["final_investment"],
                 "final_value": metrics["final_value"],
                 "absolute_gain": metrics["absolute_gain"],
+                "total_units": metrics["total_units"],
                 "percentage_gain": metrics["percentage_gain"],
                 "monthly_gain": metrics["monthly_gain"],
                 "price_drawdown": metrics["price_drawdown"],
                 "value_drawdown": metrics["value_drawdown"],
                 "buy_hold_gain": metrics["buy_hold_gain"],
                 "buy_hold_monthly": metrics["buy_hold_monthly"],
-                "total_units": metrics["total_units"]
             }
             all_metrics.append(metrics_for_table)
-        
+
         # Calculate averages
         avg_metrics = {
             "final_investment": sum(m["final_investment"] for m in all_metrics) / num_tests,
             "final_value": sum(m["final_value"] for m in all_metrics) / num_tests,
             "absolute_gain": sum(m["absolute_gain"] for m in all_metrics) / num_tests,
+            "total_units": sum(m["total_units"] for m in all_metrics) / num_tests,
             "percentage_gain": sum(m["percentage_gain"] for m in all_metrics) / num_tests,
             "monthly_gain": sum(m["monthly_gain"] for m in all_metrics) / num_tests,
             "price_drawdown": sum(m["price_drawdown"] for m in all_metrics) / num_tests,
             "value_drawdown": sum(m["value_drawdown"] for m in all_metrics) / num_tests,
             "buy_hold_gain": sum(m["buy_hold_gain"] for m in all_metrics) / num_tests,
             "buy_hold_monthly": sum(m["buy_hold_monthly"] for m in all_metrics) / num_tests,
-            "total_units": sum(m["total_units"] for m in all_metrics) / num_tests,
-            "all_runs": all_metrics  # Store all individual runs
+            "all_runs": all_metrics,  # Store all individual runs
         }
-        
+
         results_by_asset[asset] = avg_metrics
-    
+
     return results_by_asset
