@@ -23,10 +23,10 @@ def display_metrics_grid(metrics: dict, prefix: str = ""):
     col1, col2, col3, col4, col5 = st.columns(5)
     with col1:
         st.metric(f"{prefix}Final Investment", f"${metrics['final_investment']:,.2f}")
-        st.metric(f"{prefix}Final Value", f"${metrics['final_value']:,.2f}")
-    with col2:
-        st.metric(f"{prefix}Absolute Gain", f"${metrics['absolute_gain']:,.2f}")
         st.metric(f"{prefix}Total Units", f"{metrics['total_units']:,.2f}")
+    with col2:
+        st.metric(f"{prefix}Final Value", f"${metrics['final_value']:,.2f}")
+        st.metric(f"{prefix}Absolute Gain", f"${metrics['absolute_gain']:,.2f}")
     with col3:
         st.metric(f"{prefix}Price Max DD", f"{metrics['price_drawdown']:,.2f}%")
         st.metric(f"{prefix}Value Max DD", f"{metrics['value_drawdown']:,.2f}%")
@@ -42,7 +42,7 @@ def display_detailed_results(results: dict):
     """Display detailed metrics for each asset."""
     st.header("Detailed Results")
     sorted_results = sorted(results.items(), key=lambda x: x[1]["final_value"], reverse=True)
-    
+
     for asset, metrics in sorted_results:
         with st.expander(get_asset_display_name(asset), expanded=True):
             display_metrics_grid(metrics)
@@ -54,7 +54,7 @@ def format_runs_dataframe(df: pd.DataFrame) -> pd.DataFrame:
     date_cols = ["start_date", "end_date"]
     other_cols = [col for col in df.columns if col not in date_cols]
     df = df[date_cols + other_cols]
-    
+
     # Round and format
     df = df.round(2)
     for col in df.columns:
@@ -62,7 +62,7 @@ def format_runs_dataframe(df: pd.DataFrame) -> pd.DataFrame:
             df[col] = df[col].apply(lambda x: f"${x:,.2f}")
         elif col not in date_cols:
             df[col] = df[col].apply(lambda x: f"{x}%")
-    
+
     return df.sort_values(by=date_cols)
 
 
@@ -70,11 +70,11 @@ def display_random_test_results(random_results: dict, params: dict):
     """Display results from randomized tests."""
     st.header("Random Test Results (Averages)")
     sorted_results = sorted(random_results.items(), key=lambda x: x[1]["final_value"], reverse=True)
-    
+
     for asset, metrics in sorted_results:
         with st.expander(get_asset_display_name(asset), expanded=True):
             display_metrics_grid(metrics, prefix="Avg ")
-            
+
             if params["show_individual_runs"] and "all_runs" in metrics:
                 st.markdown("#### Individual Test Runs")
                 df = pd.DataFrame(metrics["all_runs"])
@@ -91,10 +91,7 @@ def main():
         return
 
     # Get data and calculate results
-    asset_data = {
-        asset: fetch_historical_data(asset, params["start_date"])
-        for asset in params["selected_assets"]
-    }
+    asset_data = {asset: fetch_historical_data(asset, params["start_date"]) for asset in params["selected_assets"]}
     results = calculate_multi_asset_dca(asset_data, params)
 
     # Display charts
@@ -104,7 +101,7 @@ def main():
 
     # Display results
     display_detailed_results(results)
-    
+
     if params.get("run_random_tests"):
         with st.spinner(f'Running {params["num_tests"]} random tests...'):
             random_results = run_randomized_tests(asset_data, params, params["num_tests"])
