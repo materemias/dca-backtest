@@ -1,5 +1,4 @@
-import random
-from datetime import date, timedelta
+from datetime import date
 from typing import Dict
 
 import pandas as pd

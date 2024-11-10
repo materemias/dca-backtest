@@ -1,5 +1,5 @@
-import random
 import multiprocessing
+import random
 from datetime import timedelta
 from functools import partial
 from typing import Dict
@@ -14,7 +14,7 @@ def run_single_test(test_num: int, asset_data: pd.DataFrame, params: Dict) -> Di
     start_date = params["start_date"]
     end_date = params["end_date"]
     total_period = end_date - start_date
-    
+
     # Generate random start and end dates
     test_period = random.uniform(365, (total_period.days - 1))
     random_start_offset = random.uniform(0, total_period.days - test_period)
@@ -28,9 +28,7 @@ def run_single_test(test_num: int, asset_data: pd.DataFrame, params: Dict) -> Di
     test_params["end_date"] = test_end
 
     # Calculate metrics for this test
-    metrics = calculate_dca_metrics(asset_data, params["initial_investment"], 
-                                  params["periodic_investment"], params["periodicity"], 
-                                  test_end)
+    metrics = calculate_dca_metrics(asset_data, params["initial_investment"], params["periodic_investment"], params["periodicity"], test_end)
 
     # Return metrics for table
     return {
@@ -46,23 +44,23 @@ def run_single_test(test_num: int, asset_data: pd.DataFrame, params: Dict) -> Di
         "price_drawdown": metrics["price_drawdown"],
         "value_drawdown": metrics["value_drawdown"],
         "buy_hold_gain": metrics["buy_hold_gain"],
-        "buy_hold_monthly": metrics["buy_hold_monthly"]
+        "buy_hold_monthly": metrics["buy_hold_monthly"],
     }
 
 
 def run_randomized_tests(asset_data: Dict[str, pd.DataFrame], params: Dict, num_tests: int) -> Dict[str, Dict]:
     """Run multiple random date range tests in parallel and return average metrics"""
     results_by_asset = {}
-    
+
     # Get number of CPU cores
     num_cores = multiprocessing.cpu_count()
-    
+
     for asset, df in asset_data.items():
         # Create pool of workers
         with multiprocessing.Pool(num_cores) as pool:
             # Create partial function with fixed arguments
             test_func = partial(run_single_test, asset_data=df, params=params)
-            
+
             # Run tests in parallel
             all_metrics = pool.map(test_func, range(num_tests))
 
@@ -78,7 +76,7 @@ def run_randomized_tests(asset_data: Dict[str, pd.DataFrame], params: Dict, num_
             "value_drawdown": sum(m["value_drawdown"] for m in all_metrics) / num_tests,
             "buy_hold_gain": sum(m["buy_hold_gain"] for m in all_metrics) / num_tests,
             "buy_hold_monthly": sum(m["buy_hold_monthly"] for m in all_metrics) / num_tests,
-            "all_runs": all_metrics
+            "all_runs": all_metrics,
         }
 
         results_by_asset[asset] = avg_metrics

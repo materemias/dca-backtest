@@ -48,11 +48,11 @@ def create_comparison_charts(asset_data: dict, results: dict, params: dict) -> T
     fig2 = go.Figure()
 
     performance_data = {
-        "Asset": [], 
-        "Display_Name": [], 
+        "Asset": [],
+        "Display_Name": [],
         "DCA_Gain": [],  # Changed from Final Investment
-        "BH_Gain": [],   # Changed from Final Value
-        "Color": []
+        "BH_Gain": [],  # Changed from Final Value
+        "Color": [],
     }
 
     for asset, metrics in results.items():
@@ -65,7 +65,7 @@ def create_comparison_charts(asset_data: dict, results: dict, params: dict) -> T
         performance_data["Asset"].append(asset)
         performance_data["Display_Name"].append(display_name)
         performance_data["DCA_Gain"].append(metrics["percentage_gain"])  # Changed
-        performance_data["BH_Gain"].append(metrics["buy_hold_gain"])     # Changed
+        performance_data["BH_Gain"].append(metrics["buy_hold_gain"])  # Changed
         performance_data["Color"].append(params["color_map"][asset])
 
     # Convert to DataFrame and sort by DCA Gain
@@ -73,30 +73,16 @@ def create_comparison_charts(asset_data: dict, results: dict, params: dict) -> T
     perf_df = perf_df.sort_values("DCA_Gain", ascending=False)  # Changed sorting column
 
     # Add bars for DCA and Buy & Hold gains
-    fig2.add_trace(
-        go.Bar(
-            name="DCA % Gain", 
-            x=perf_df["Display_Name"], 
-            y=perf_df["DCA_Gain"],
-            marker_color=perf_df["Color"]
-        )
-    )
+    fig2.add_trace(go.Bar(name="DCA % Gain", x=perf_df["Display_Name"], y=perf_df["DCA_Gain"], marker_color=perf_df["Color"]))
 
-    fig2.add_trace(
-        go.Bar(
-            name="Buy & Hold % Gain", 
-            x=perf_df["Display_Name"], 
-            y=perf_df["BH_Gain"],
-            marker_color="lightgray"
-        )
-    )
+    fig2.add_trace(go.Bar(name="Buy & Hold % Gain", x=perf_df["Display_Name"], y=perf_df["BH_Gain"], marker_color="lightgray"))
 
     fig2.update_layout(
-        title="Investment Performance Comparison", 
-        barmode="group", 
+        title="Investment Performance Comparison",
+        barmode="group",
         yaxis_title="Gain (%)",  # Changed
         yaxis=dict(tickformat=".1f", ticksuffix="%"),  # Added percentage formatting
-        hovermode="x unified"
+        hovermode="x unified",
     )
 
     return fig1, fig2

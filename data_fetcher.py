@@ -11,7 +11,7 @@ def get_cache_path(ticker: str) -> pathlib.Path:
     cache_dir = pathlib.Path("cache")
     cache_dir.mkdir(exist_ok=True)
     # Replace any special characters in ticker with underscore for filename
-    safe_ticker = ticker.replace('^', '').replace('-', '_').replace('.', '_')
+    safe_ticker = ticker.replace("^", "").replace("-", "_").replace(".", "_")
     return cache_dir / f"{safe_ticker.lower()}_history.parquet"
 
 
@@ -45,12 +45,12 @@ def fetch_historical_data(ticker: str, start_date: datetime = None) -> pd.DataFr
 
         need_earlier_data = adjusted_start < earliest_cached_date
         need_later_data = latest_cached_date < datetime.now().date()
-        
+
         if need_earlier_data or need_later_data:
             # Fetch missing historical data
             ticker_data = yf.Ticker(ticker)
             today = datetime.now().date()
-            
+
             if need_earlier_data:
                 history_start = min(adjusted_start, earliest_cached_date - timedelta(days=1))
                 history_end = earliest_cached_date
@@ -64,7 +64,7 @@ def fetch_historical_data(ticker: str, start_date: datetime = None) -> pd.DataFr
                             cached_df = pd.concat([early_df, cached_df])
                     except Exception as e:
                         print(f"Warning: Could not fetch earlier data for {ticker}: {str(e)}")
-            
+
             if need_later_data:
                 history_start = latest_cached_date + timedelta(days=1)
                 history_end = today
@@ -78,7 +78,7 @@ def fetch_historical_data(ticker: str, start_date: datetime = None) -> pd.DataFr
                             cached_df = pd.concat([cached_df, new_df])
                     except Exception as e:
                         print(f"Warning: Could not fetch later data for {ticker}: {str(e)}")
-            
+
             # Save updated cache
             cached_df = cached_df.sort_values("date").drop_duplicates(subset=["date"])
             cached_df.to_parquet(cache_file)
@@ -97,14 +97,14 @@ def fetch_historical_data(ticker: str, start_date: datetime = None) -> pd.DataFr
                 df = df.reset_index()
                 df = df.rename(columns={"Date": "date"})
                 df["date"] = pd.to_datetime(df["date"]).dt.date
-                
+
                 # Cache the data
                 df.to_parquet(cache_file)
-                
+
                 # Filter to requested date range
                 result_df = df[(df["date"] >= start_date) & (df["date"] <= today)]
                 return result_df if not result_df.empty else pd.DataFrame()
         except Exception as e:
             print(f"Warning: Could not fetch data for {ticker}: {str(e)}")
-    
+
     return pd.DataFrame()  # Return empty DataFrame if no data available
