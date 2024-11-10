@@ -10,32 +10,20 @@ import streamlit as st
 from dca_core import calculate_dca_metrics, resample_price_data
 
 
-def run_single_test(test_num: int, asset_data: pd.DataFrame, params: Dict) -> Dict:
-    """Run a single random test"""
-    start_date = params["start_date"]
-    end_date = params["end_date"]
-    total_period = end_date - start_date
-
-    # Generate random start and end dates
-    test_period = random.uniform(365, (total_period.days - 1))
-    random_start_offset = random.uniform(0, total_period.days - test_period)
-
-    test_start = start_date + timedelta(days=random_start_offset)
-    test_end = test_start + timedelta(days=test_period)
-
-    # Create test parameters
+def run_single_random_test(date_range: Tuple[pd.Timestamp, pd.Timestamp], df: pd.DataFrame, params: Dict) -> Dict:
+    """Run a single random test with given date range"""
     test_params = params.copy()
-    test_params["start_date"] = test_start
-    test_params["end_date"] = test_end
-
-    # Calculate metrics for this test
-    metrics = calculate_dca_metrics(asset_data, params["initial_investment"], params["periodic_investment"], params["periodicity"], test_end)
-
-    # Return metrics for table
+    test_params["start_date"] = date_range[0]
+    test_params["end_date"] = date_range[1]
+    
+    metrics = calculate_dca_metrics(df, params["initial_investment"], 
+                                  params["periodic_investment"], 
+                                  params["periodicity"], 
+                                  date_range[1])
+    
     return {
-        "test_num": test_num + 1,
-        "start_date": test_start.strftime("%Y-%m-%d"),
-        "end_date": test_end.strftime("%Y-%m-%d"),
+        "start_date": date_range[0].strftime("%Y-%m-%d"),
+        "end_date": date_range[1].strftime("%Y-%m-%d"),
         "final_investment": metrics["final_investment"],
         "final_value": metrics["final_value"],
         "absolute_gain": metrics["absolute_gain"],
@@ -110,42 +98,21 @@ def generate_random_date_ranges(asset_data: Dict[str, pd.DataFrame], params: Dic
 def run_randomized_tests(asset_data: Dict[str, pd.DataFrame], params: Dict, num_tests: int) -> Dict[str, Dict]:
     """Run multiple random date range tests in parallel and return average metrics"""
     results_by_asset = {}
-
+    
     # Generate random date ranges
     random_ranges = generate_random_date_ranges(asset_data, params, num_tests)
-
+    
     # Get number of CPU cores
     num_cores = multiprocessing.cpu_count()
-
+    
     for asset, df in asset_data.items():
-        # Prepare test function with fixed arguments
-        def test_func(date_range):
-            test_params = params.copy()
-            test_params["start_date"] = date_range[0]
-            test_params["end_date"] = date_range[1]
-            
-            metrics = calculate_dca_metrics(df, params["initial_investment"], params["periodic_investment"], params["periodicity"], date_range[1])
-            
-            return {
-                "start_date": date_range[0].strftime("%Y-%m-%d"),
-                "end_date": date_range[1].strftime("%Y-%m-%d"),
-                "final_investment": metrics["final_investment"],
-                "final_value": metrics["final_value"],
-                "absolute_gain": metrics["absolute_gain"],
-                "total_units": metrics["total_units"],
-                "percentage_gain": metrics["percentage_gain"],
-                "monthly_gain": metrics["monthly_gain"],
-                "price_drawdown": metrics["price_drawdown"],
-                "value_drawdown": metrics["value_drawdown"],
-                "buy_hold_gain": metrics["buy_hold_gain"],
-                "buy_hold_monthly": metrics["buy_hold_monthly"],
-            }
-
         # Create pool of workers
         with multiprocessing.Pool(num_cores) as pool:
+            # Create partial function with fixed df and params arguments
+            test_func = partial(run_single_random_test, df=df, params=params)
             # Run tests in parallel
             all_metrics = pool.map(test_func, random_ranges)
-
+        
         # Calculate averages
         avg_metrics = {
             "final_investment": sum(m["final_investment"] for m in all_metrics) / num_tests,
@@ -160,7 +127,7 @@ def run_randomized_tests(asset_data: Dict[str, pd.DataFrame], params: Dict, num_
             "buy_hold_monthly": sum(m["buy_hold_monthly"] for m in all_metrics) / num_tests,
             "all_runs": all_metrics,
         }
-
+        
         results_by_asset[asset] = avg_metrics
-
+    
     return results_by_asset
