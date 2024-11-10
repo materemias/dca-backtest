@@ -14,9 +14,12 @@ def resample_price_data(df: pd.DataFrame, periodicity: str) -> pd.DataFrame:
     df = df.set_index("date")
     freq_map = {"Daily": "D", "Weekly": "W", "Monthly": "ME"}
     
-    # Resample with forward fill for Close and sum for Volume
+    # First forward fill any gaps in the original data
+    df["Close"] = df["Close"].ffill()
+    
+    # Resample with last value for Close and sum for Volume
     resampled = df.resample(freq_map[periodicity]).agg({
-        "Close": lambda x: x.ffill().iloc[-1] if len(x) > 0 else x.ffill().iloc[0],  # Take last known price
+        "Close": "last",  # Take last value in period
         "Volume": "sum"
     }).reset_index()
     
