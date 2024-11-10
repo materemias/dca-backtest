@@ -88,6 +88,10 @@ def display_random_test_results(random_results, params):
                         df[col] = df[col].apply(lambda x: f"${x:,.2f}")
                     elif col in ["percentage_gain", "monthly_gain", "price_drawdown", "value_drawdown", "buy_hold_gain", "buy_hold_monthly"]:
                         df[col] = df[col].apply(lambda x: f"{x}%")
+
+                # Order by start_date and end_date
+                df = df.sort_values(by=["start_date", "end_date"])
+
                 st.dataframe(df)
 
 

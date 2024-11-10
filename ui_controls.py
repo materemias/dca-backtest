@@ -116,7 +116,7 @@ def get_investment_parameters() -> Dict:
 
     if date_diff.days >= 730:  # 2 years
         st.sidebar.markdown("### Random Tests")
-        num_tests = st.number_input("Number of random tests", min_value=10, max_value=1000, value=100, step=10)
+        num_tests = st.number_input("Number of random tests", min_value=10, max_value=10000, value=100, step=10)
         show_individual_runs = st.checkbox("Show individual runs", value=False, help="Display detailed results for each test run")
 
         if st.sidebar.button("Run Random Tests", help="Run multiple tests with random date ranges"):
