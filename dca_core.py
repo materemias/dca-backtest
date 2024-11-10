@@ -13,8 +13,17 @@ def resample_price_data(df: pd.DataFrame, periodicity: str) -> pd.DataFrame:
     # Set index and resample
     df = df.set_index("date")
     freq_map = {"Daily": "D", "Weekly": "W", "Monthly": "ME"}
-
-    return df.resample(freq_map[periodicity]).agg({"Close": "last", "Volume": "sum"}).reset_index()
+    
+    # Resample with forward fill for Close and sum for Volume
+    resampled = df.resample(freq_map[periodicity]).agg({
+        "Close": lambda x: x.ffill().iloc[-1] if len(x) > 0 else x.ffill().iloc[0],  # Take last known price
+        "Volume": "sum"
+    }).reset_index()
+    
+    # Forward fill any remaining nulls after resampling
+    resampled["Close"] = resampled["Close"].ffill()
+    
+    return resampled
 
 
 def calculate_price_drawdown(df: pd.DataFrame) -> float:
