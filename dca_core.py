@@ -16,7 +16,7 @@ def resample_price_data(df: pd.DataFrame, periodicity: str) -> pd.DataFrame:
                  .agg({"Close": "last", "Volume": "sum"})
                  .reset_index())
     
-    return resampled.fillna(method='ffill')
+    return resampled.ffill()
 
 def calculate_monthly_gain(final_value: float, initial_value: float, days_elapsed: float) -> float:
     """Calculate monthly gain percentage."""
