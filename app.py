@@ -9,125 +9,106 @@ from dca_core import calculate_multi_asset_dca
 from ui_controls import create_ui
 
 
-def display_detailed_results(results, color_map):
+def get_asset_display_name(asset: str) -> str:
+    """Get formatted display name for an asset."""
+    try:
+        info = yf.Ticker(asset).info
+        return f"{info.get('longName', asset)} ({asset})"
+    except:
+        return asset
+
+
+def display_metrics_grid(metrics: dict, prefix: str = ""):
+    """Display metrics in a grid layout."""
+    col1, col2, col3, col4, col5 = st.columns(5)
+    with col1:
+        st.metric(f"{prefix}Final Investment", f"${metrics['final_investment']:,.2f}")
+        st.metric(f"{prefix}Final Value", f"${metrics['final_value']:,.2f}")
+    with col2:
+        st.metric(f"{prefix}Absolute Gain", f"${metrics['absolute_gain']:,.2f}")
+        st.metric(f"{prefix}Total Units", f"{metrics['total_units']:,.2f}")
+    with col3:
+        st.metric(f"{prefix}Price Max DD", f"{metrics['price_drawdown']:,.2f}%")
+        st.metric(f"{prefix}Value Max DD", f"{metrics['value_drawdown']:,.2f}%")
+    with col4:
+        st.metric(f"{prefix}DCA % Gain", f"{metrics['percentage_gain']:,.2f}%")
+        st.metric(f"{prefix}DCA Monthly Gain", f"{metrics['monthly_gain']:,.2f}%")
+    with col5:
+        st.metric(f"{prefix}B&H % Gain", f"{metrics['buy_hold_gain']:,.2f}%")
+        st.metric(f"{prefix}B&H Monthly", f"{metrics['buy_hold_monthly']:,.2f}%")
+
+
+def display_detailed_results(results: dict):
     """Display detailed metrics for each asset."""
     st.header("Detailed Results")
-
-    # Convert results to a list of tuples (asset, metrics) sorted by final_value
     sorted_results = sorted(results.items(), key=lambda x: x[1]["final_value"], reverse=True)
-
-    # Display results in sorted order
+    
     for asset, metrics in sorted_results:
-        try:
-            info = yf.Ticker(asset).info
-            display_name = f"{info.get('longName', asset)} ({asset})"
-        except:
-            display_name = asset
-
-        # Create the expander with the colored title
-        with st.expander(display_name, expanded=True):
-            col1, col2, col3, col4, col5 = st.columns(5)
-            with col1:
-                st.metric("Final Investment", f"${metrics['final_investment']:,.2f}")
-                st.metric("Final Value", f"${metrics['final_value']:,.2f}")
-            with col2:
-                st.metric("Absolute Gain", f"${metrics['absolute_gain']:,.2f}")
-                st.metric("Total Units", f"{metrics['total_units']:,.2f}")
-            with col3:
-                st.metric("Price Max Drawdown", f"{metrics['price_drawdown']:,.2f}%")
-                st.metric("Value Max Drawdown", f"{metrics['value_drawdown']:,.2f}%")
-            with col4:
-                st.metric("DCA % Gain", f"{metrics['percentage_gain']:,.2f}%")
-                st.metric("DCA Monthly Gain", f"{metrics['monthly_gain']:,.2f}%")
-            with col5:
-                st.metric("Buy & Hold % Gain", f"{metrics['buy_hold_gain']:,.2f}%")
-                st.metric("B&H Monthly Gain", f"{metrics['buy_hold_monthly']:,.2f}%")
+        with st.expander(get_asset_display_name(asset), expanded=True):
+            display_metrics_grid(metrics)
 
 
-def display_random_test_results(random_results, params):
+def format_runs_dataframe(df: pd.DataFrame) -> pd.DataFrame:
+    """Format the runs dataframe for display."""
+    # Reorder columns
+    date_cols = ["start_date", "end_date"]
+    other_cols = [col for col in df.columns if col not in date_cols]
+    df = df[date_cols + other_cols]
+    
+    # Round and format
+    df = df.round(2)
+    for col in df.columns:
+        if col in ["final_investment", "final_value", "absolute_gain"]:
+            df[col] = df[col].apply(lambda x: f"${x:,.2f}")
+        elif col not in date_cols:
+            df[col] = df[col].apply(lambda x: f"{x}%")
+    
+    return df.sort_values(by=date_cols)
+
+
+def display_random_test_results(random_results: dict, params: dict):
     """Display results from randomized tests."""
     st.header("Random Test Results (Averages)")
-
-    # Convert results to a list of tuples (asset, metrics) sorted by final_value
     sorted_results = sorted(random_results.items(), key=lambda x: x[1]["final_value"], reverse=True)
-
-    # Display results in sorted order
+    
     for asset, metrics in sorted_results:
-        try:
-            info = yf.Ticker(asset).info
-            display_name = f"{info.get('longName', asset)} ({asset})"
-        except:
-            display_name = asset
-
-        with st.expander(display_name, expanded=True):
-            col1, col2, col3, col4, col5 = st.columns(5)
-            with col1:
-                st.metric("Avg Final Investment", f"${metrics['final_investment']:,.2f}")
-                st.metric("Avg Final Value", f"${metrics['final_value']:,.2f}")
-            with col2:
-                st.metric("Avg Absolute Gain", f"${metrics['absolute_gain']:,.2f}")
-                st.metric("Avg Total Units", f"{metrics['total_units']:,.2f}")
-            with col3:
-                st.metric("Avg Max Price DD", f"{metrics['price_drawdown']:,.2f}%")
-                st.metric("Avg Max Value DD", f"{metrics['value_drawdown']:,.2f}%")
-            with col4:
-                st.metric("Avg DCA % Gain", f"{metrics['percentage_gain']:,.2f}%")
-                st.metric("Avg DCA Monthly Gain", f"{metrics['monthly_gain']:,.2f}%")
-            with col5:
-                st.metric("Avg B&H Gain", f"{metrics['buy_hold_gain']:,.2f}%")
-                st.metric("Avg B&H Monthly", f"{metrics['buy_hold_monthly']:,.2f}%")
-
-            # Add detailed runs table if enabled
+        with st.expander(get_asset_display_name(asset), expanded=True):
+            display_metrics_grid(metrics, prefix="Avg ")
+            
             if params["show_individual_runs"] and "all_runs" in metrics:
                 st.markdown("#### Individual Test Runs")
                 df = pd.DataFrame(metrics["all_runs"])
-                
-                # Reorder columns to put dates first
-                cols = ["start_date", "end_date"] + [col for col in df.columns if col not in ["start_date", "end_date"]]
-                df = df[cols]
-                
-                # Format numeric columns
-                df = df.round(2)
-                for col in df.columns:
-                    if col in ["final_investment", "final_value", "absolute_gain"]:
-                        df[col] = df[col].apply(lambda x: f"${x:,.2f}")
-                    elif col in ["percentage_gain", "monthly_gain", "price_drawdown", "value_drawdown", "buy_hold_gain", "buy_hold_monthly"]:
-                        df[col] = df[col].apply(lambda x: f"{x}%")
-
-                # Order by start_date and end_date
-                df = df.sort_values(by=["start_date", "end_date"])
-
+                df = format_runs_dataframe(df)
                 st.dataframe(df)
 
 
 def main():
+    """Main application function."""
     st.set_page_config(page_title="DCA Calculator", page_icon="📈", layout="wide")
-
     params = create_ui()
 
-    if params["selected_assets"]:
-        asset_data = {}
-        for asset in params["selected_assets"]:
-            asset_data[asset] = fetch_historical_data(asset, params["start_date"])
+    if not params["selected_assets"]:
+        return
 
-        # Calculate regular DCA metrics
-        results = calculate_multi_asset_dca(asset_data, params)
+    # Get data and calculate results
+    asset_data = {
+        asset: fetch_historical_data(asset, params["start_date"])
+        for asset in params["selected_assets"]
+    }
+    results = calculate_multi_asset_dca(asset_data, params)
 
-        # Create and display charts
-        fig1, fig2 = create_comparison_charts(asset_data, results, params)
-        price_fig = create_price_chart(asset_data, params)
+    # Display charts
+    for fig in create_comparison_charts(asset_data, results, params):
+        st.plotly_chart(fig, use_container_width=True)
+    st.plotly_chart(create_price_chart(asset_data, params), use_container_width=True)
 
-        st.plotly_chart(fig1, use_container_width=True)
-        st.plotly_chart(price_fig, use_container_width=True)
-        st.plotly_chart(fig2, use_container_width=True)
-
-        display_detailed_results(results, params["color_map"])
-
-        # Run and display random tests if enabled
-        if params.get("run_random_tests"):
-            with st.spinner(f'Running {params["num_tests"]} random tests...'):
-                random_results = run_randomized_tests(asset_data, params, params["num_tests"])
-                display_random_test_results(random_results, params)  # Pass entire params instead of just color_map
+    # Display results
+    display_detailed_results(results)
+    
+    if params.get("run_random_tests"):
+        with st.spinner(f'Running {params["num_tests"]} random tests...'):
+            random_results = run_randomized_tests(asset_data, params, params["num_tests"])
+            display_random_test_results(random_results, params)
 
 
 if __name__ == "__main__":
