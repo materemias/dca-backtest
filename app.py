@@ -81,6 +81,11 @@ def display_random_test_results(random_results, params):
             if params["show_individual_runs"] and "all_runs" in metrics:
                 st.markdown("#### Individual Test Runs")
                 df = pd.DataFrame(metrics["all_runs"])
+                
+                # Reorder columns to put dates first
+                cols = ["start_date", "end_date"] + [col for col in df.columns if col not in ["start_date", "end_date"]]
+                df = df[cols]
+                
                 # Format numeric columns
                 df = df.round(2)
                 for col in df.columns:
