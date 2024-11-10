@@ -13,13 +13,13 @@ from dca_core import calculate_dca_metrics, resample_price_data
 def run_single_random_test(date_range: Tuple[pd.Timestamp, pd.Timestamp], df: pd.DataFrame, params: Dict) -> Dict:
     """Run a single random test with given date range"""
     test_params = params.copy()
-    test_params["start_date"] = date_range[0]
-    test_params["end_date"] = date_range[1]
+    test_params["start_date"] = date_range[0].date()  # Convert to date object
+    test_params["end_date"] = date_range[1].date()    # Convert to date object
     
     metrics = calculate_dca_metrics(df, params["initial_investment"], 
                                   params["periodic_investment"], 
                                   params["periodicity"], 
-                                  date_range[1])
+                                  test_params["end_date"])  # Now using date object
     
     return {
         "start_date": date_range[0].strftime("%Y-%m-%d"),
