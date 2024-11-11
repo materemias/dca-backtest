@@ -14,7 +14,7 @@ def get_asset_display_name(asset: str) -> str:
     try:
         info = yf.Ticker(asset).info
         return f"{info.get('longName', asset)} ({asset})"
-    except:
+    except Exception:
         return asset
 
 

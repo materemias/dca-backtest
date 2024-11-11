@@ -30,7 +30,7 @@ def get_ticker_info(ticker: str) -> str:
     try:
         info = yf.Ticker(ticker).info
         return f"{info.get('longName', ticker)} ({ticker})"
-    except:
+    except Exception:
         return ticker
 
 
@@ -40,7 +40,7 @@ def validate_ticker(ticker: str) -> Tuple[bool, yf.Ticker]:
         ticker_obj = yf.Ticker(ticker)
         test_data = ticker_obj.history(period="5d")
         return not test_data.empty, ticker_obj
-    except:
+    except Exception:
         return False, None
 
 

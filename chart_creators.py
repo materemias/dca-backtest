@@ -20,7 +20,7 @@ def create_comparison_charts(asset_data: dict, results: dict, params: dict) -> T
         try:
             info = yf.Ticker(asset).info
             display_name = f"{info.get('longName', asset)} ({asset})"
-        except:
+        except KeyError:
             display_name = asset
 
         # Calculate running maximum value and drawdown for hover data
@@ -59,7 +59,7 @@ def create_comparison_charts(asset_data: dict, results: dict, params: dict) -> T
         try:
             info = yf.Ticker(asset).info
             display_name = f"{info.get('longName', asset)} ({asset})"
-        except:
+        except KeyError:
             display_name = asset
 
         performance_data["Asset"].append(asset)
@@ -106,7 +106,7 @@ def create_price_chart(asset_data: dict, params: dict) -> go.Figure:
         try:
             info = yf.Ticker(asset).info
             display_name = f"{info.get('longName', asset)} ({asset})"
-        except:
+        except KeyError:
             display_name = asset
 
         # Add trace with customized hover template

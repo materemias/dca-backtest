@@ -22,7 +22,7 @@ def handle_new_ticker_form():
                     try:
                         info = ticker_obj.info
                         new_display_name = f"{info.get('longName', new_ticker)} ({new_ticker})"
-                    except:
+                    except KeyError:
                         new_display_name = new_ticker
 
                     if "selected_formatted_names" not in st.session_state:
@@ -53,7 +53,7 @@ def display_legend(selected_formatted, name_to_ticker, color_map):
                 </div>""",
                 unsafe_allow_html=True,
             )
-        except:
+        except KeyError:
             st.markdown(f"{ticker}", unsafe_allow_html=True)
 
     st.markdown("<hr style='margin-top: 10px; margin-bottom: 10px;'>", unsafe_allow_html=True)
