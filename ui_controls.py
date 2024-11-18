@@ -143,7 +143,6 @@ def create_ui() -> Dict:
         initialize_session_state()
         handle_new_ticker_form()
 
-        color_map = create_color_mapping(st.session_state.default_tickers)
         formatted_options = [get_ticker_info(ticker) for ticker in st.session_state.default_tickers]
         name_to_ticker = dict(zip(formatted_options, st.session_state.default_tickers))
 
@@ -157,10 +156,17 @@ def create_ui() -> Dict:
 
         # Use the multiselect with a callback
         selected_formatted = st.multiselect(
-            "Enter ticker symbols", options=formatted_options, default=st.session_state.selected_formatted_names, key=f"ticker_multiselect_{st.session_state.multiselect_key}", on_change=on_change
+            "Enter ticker symbols", 
+            options=formatted_options, 
+            default=st.session_state.selected_formatted_names, 
+            key=f"ticker_multiselect_{st.session_state.multiselect_key}", 
+            on_change=on_change
         )
 
         selected_tickers = [name_to_ticker[name] for name in selected_formatted]
+        
+        # Create color mapping after selecting tickers to ensure all are included
+        color_map = create_color_mapping(st.session_state.default_tickers)
 
         display_legend(selected_formatted, name_to_ticker, color_map)
         params = get_investment_parameters()
