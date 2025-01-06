@@ -61,23 +61,24 @@ def display_legend(selected_formatted, name_to_ticker, color_map):
 
 def apply_custom_styling(selected_formatted: List[str], name_to_ticker: Dict[str, str], color_map: Dict[str, str]):
     """Apply custom styling to the multiselect."""
-    st.markdown(
-        """
-        <style>
-            .stMultiSelect span[data-baseweb="tag"] {
-                background-color: transparent !important;
-            }
-        </style>
-        """,
-        unsafe_allow_html=True,
-    )
-
-    selected_styles = ""
+    # Initialize base styles
+    base_styles = """
+    <style>
+        .stMultiSelect span[data-baseweb="tag"] {
+            background-color: transparent !important;
+        }
+    </style>
+    """
+    
+    # Initialize selected styles as a list
+    style_rules = []
+    
+    # Generate style rules for each selected ticker
     for i, name in enumerate(selected_formatted, 1):
-        ticker = name_to_ticker[name]
-        try:
-            color = color_map[ticker]
-            selected_styles += f"""
+        ticker = name_to_ticker.get(name)
+        if ticker:
+            color = color_map.get(ticker, "#CCCCCC")  # Use default gray if color not found
+            style_rules.append(f"""
                 .stMultiSelect span[data-baseweb="tag"]:nth-of-type({i}) {{
                     background-color: {color} !important;
                     color: black !important;
@@ -85,17 +86,12 @@ def apply_custom_styling(selected_formatted: List[str], name_to_ticker: Dict[str
                 .stMultiSelect span[data-baseweb="tag"]:nth-of-type({i}) span {{
                     color: black !important;
                 }}
-            """
-        except KeyError:
-            # Use a default color if ticker not found
-            selected_styles += f"""
-                .stMultiSelect span[data-baseweb="tag"]:nth-of-type({i}) {{
-                    background-color: #CCCCCC !important;
-                    color: black !important;
-                }}
-            """
-
-    st.markdown(f"<style>{selected_styles}</style>", unsafe_allow_html=True)
+            """)
+    
+    # Combine all styles
+    if style_rules:
+        full_styles = base_styles + "<style>" + "\n".join(style_rules) + "</style>"
+        st.markdown(full_styles, unsafe_allow_html=True)
 
 
 def get_investment_parameters() -> Dict:
