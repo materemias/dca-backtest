@@ -75,15 +75,25 @@ def apply_custom_styling(selected_formatted: List[str], name_to_ticker: Dict[str
     selected_styles = ""
     for i, name in enumerate(selected_formatted, 1):
         ticker = name_to_ticker[name]
-        selected_styles += f"""
-            .stMultiSelect span[data-baseweb="tag"]:nth-of-type({i}) {{
-                background-color: {color_map[ticker]} !important;
-                color: black !important;
-            }}
-            .stMultiSelect span[data-baseweb="tag"]:nth-of-type({i}) span {{
-                color: black !important;
-            }}
-        """
+        try:
+            color = color_map[ticker]
+            selected_styles += f"""
+                .stMultiSelect span[data-baseweb="tag"]:nth-of-type({i}) {{
+                    background-color: {color} !important;
+                    color: black !important;
+                }}
+                .stMultiSelect span[data-baseweb="tag"]:nth-of-type({i}) span {{
+                    color: black !important;
+                }}
+            """
+        except KeyError:
+            # Use a default color if ticker not found
+            selected_styles += f"""
+                .stMultiSelect span[data-baseweb="tag"]:nth-of-type({i}) {{
+                    background-color: #CCCCCC !important;
+                    color: black !important;
+                }}
+            """
 
     st.markdown(f"<style>{selected_styles}</style>", unsafe_allow_html=True)
 
@@ -161,8 +171,8 @@ def create_ui() -> Dict:
 
         selected_tickers = [name_to_ticker[name] for name in selected_formatted]
 
-        # Create color mapping after selecting tickers to ensure all are included
-        color_map = create_color_mapping(st.session_state.default_tickers)
+        # Create color mapping only for selected tickers
+        color_map = create_color_mapping(selected_tickers)
 
         display_legend(selected_formatted, name_to_ticker, color_map)
         params = get_investment_parameters()
