@@ -121,7 +121,16 @@ def get_investment_parameters() -> Dict:
     show_individual_runs = False  # default value
 
     if date_diff.days >= 730:  # 2 years
-        st.sidebar.markdown("### Random Tests")
+        st.sidebar.subheader(
+            "Random Tests",
+            help=(
+                "Backtests the DCA strategy over many random sub-periods instead of one fixed window. "
+                "It picks N random date ranges (each at least 1 year long) from the available history, "
+                "runs the full DCA calculation on each, and reports the median of every metric plus the "
+                "5–95% range — so the results reflect typical outcomes and their spread rather than one "
+                "lucky or unlucky start date."
+            ),
+        )
         num_tests = st.number_input("Number of random tests", min_value=10, max_value=10000, value=1000, step=10)
         show_individual_runs = st.checkbox("Show individual runs", value=False, help="Display detailed results for each test run")
 
