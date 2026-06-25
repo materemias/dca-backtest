@@ -27,13 +27,25 @@ def initialize_session_state():
 
 
 @lru_cache(maxsize=128)
-def get_ticker_info(ticker: str) -> str:
-    """Get formatted display name for a ticker (cached; yf.info is slow/rate-limited)."""
+def get_ticker_name(ticker: str) -> str:
+    """Long name of a ticker, or the ticker itself on failure (cached).
+
+    Read from history_metadata (the chart endpoint), which works from datacenter IPs.
+    yf.Ticker.info hits a separate endpoint Yahoo blocks for cloud hosts like Streamlit Cloud.
+    """
     try:
-        info = yf.Ticker(ticker).info
-        return f"{info.get('longName', ticker)} ({ticker})"
+        tk = yf.Ticker(ticker)
+        tk.history(period="5d")
+        md = tk.history_metadata or {}
+        return md.get("longName") or md.get("shortName") or ticker
     except Exception:
         return ticker
+
+
+def get_ticker_info(ticker: str) -> str:
+    """Formatted display name, e.g. 'Bitcoin USD (BTC-USD)'."""
+    name = get_ticker_name(ticker)
+    return f"{name} ({ticker})" if name != ticker else ticker
 
 
 def validate_ticker(ticker: str) -> Tuple[bool, yf.Ticker]:
