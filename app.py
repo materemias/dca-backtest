@@ -9,24 +9,32 @@ from ui_controls import create_ui
 from ui_core import get_ticker_info
 
 
-def display_metrics_grid(metrics: dict, prefix: str = ""):
-    """Display metrics in a grid layout."""
-    col1, col2, col3, col4, col5 = st.columns(5)
-    with col1:
-        st.metric(f"{prefix}Final Investment", f"${metrics['final_investment']:,.2f}", help="Total cash contributed by the end date (initial investment plus every periodic buy).")
-        st.metric(f"{prefix}Total Units", f"{metrics['total_units']:,.2f}", help="Total units (shares/coins) accumulated across all purchases.")
-    with col2:
-        st.metric(f"{prefix}Final Value", f"${metrics['final_value']:,.2f}", help="Market value of all accumulated units at the end date.")
-        st.metric(f"{prefix}Absolute Gain", f"${metrics['absolute_gain']:,.2f}", help="Final Value minus Final Investment — profit or loss in dollars.")
-    with col3:
-        st.metric(f"{prefix}Price Max DD", f"{metrics['price_drawdown']:,.2f}%", help="Largest peak-to-trough drop in the asset's price over the period (max drawdown).")
-        st.metric(f"{prefix}Value Max DD", f"{metrics['value_drawdown']:,.2f}%", help="Largest peak-to-trough drop in your portfolio value over the period (max drawdown).")
-    with col4:
-        st.metric(f"{prefix}DCA % Gain", f"{metrics['percentage_gain']:,.2f}%", help="Total return on contributed capital: Final Value / Final Investment − 1.")
-        st.metric(f"{prefix}DCA Monthly Gain", f"{metrics['monthly_gain']:,.2f}%", help="Money-weighted (XIRR) return shown per month — accounts for when each contribution was actually made.")
-    with col5:
-        st.metric(f"{prefix}B&H % Gain", f"{metrics['buy_hold_gain']:,.2f}%", help="Total return if the same total capital were invested as a lump sum at the start (Buy & Hold).")
-        st.metric(f"{prefix}B&H Monthly", f"{metrics['buy_hold_monthly']:,.2f}%", help="Buy & Hold return shown per month (compounded CAGR).")
+# (label, key, format, help). Order also drives the column layout (2 metrics per column).
+METRIC_SPECS = [
+    ("Final Investment", "final_investment", "${:,.2f}", "Total cash contributed by the end date (initial investment plus every periodic buy)."),
+    ("Total Units", "total_units", "{:,.2f}", "Total units (shares/coins) accumulated across all purchases."),
+    ("Final Value", "final_value", "${:,.2f}", "Market value of all accumulated units at the end date."),
+    ("Absolute Gain", "absolute_gain", "${:,.2f}", "Final Value minus Final Investment — profit or loss in dollars."),
+    ("Price Max DD", "price_drawdown", "{:,.2f}%", "Largest peak-to-trough drop in the asset's price over the period (max drawdown)."),
+    ("Value Max DD", "value_drawdown", "{:,.2f}%", "Largest peak-to-trough drop in your portfolio value over the period (max drawdown)."),
+    ("DCA % Gain", "percentage_gain", "{:,.2f}%", "Total return on contributed capital: Final Value / Final Investment − 1."),
+    ("DCA Monthly Gain", "monthly_gain", "{:,.2f}%", "Money-weighted (XIRR) return shown per month — accounts for when each contribution was actually made."),
+    ("B&H % Gain", "buy_hold_gain", "{:,.2f}%", "Total return if the same total capital were invested as a lump sum at the start (Buy & Hold)."),
+    ("B&H Monthly", "buy_hold_monthly", "{:,.2f}%", "Buy & Hold return shown per month (compounded CAGR)."),
+]
+
+# Rate/risk metrics are horizon-normalized, so a per-metric median across random windows is
+# meaningful. Dollar metrics depend on window length, so they're excluded from the random view.
+RATE_RISK_KEYS = {"price_drawdown", "value_drawdown", "percentage_gain", "monthly_gain", "buy_hold_gain", "buy_hold_monthly"}
+
+
+def display_metrics_grid(metrics: dict, prefix: str = "", keys: set = None):
+    """Display metrics in a grid layout, optionally restricted to `keys`."""
+    specs = [s for s in METRIC_SPECS if keys is None or s[1] in keys]
+    cols = st.columns((len(specs) + 1) // 2)
+    for i, (label, key, fmt, help_text) in enumerate(specs):
+        with cols[i // 2]:
+            st.metric(f"{prefix}{label}", fmt.format(metrics[key]), help=help_text)
 
 
 def display_detailed_results(results: dict):
@@ -60,11 +68,16 @@ def format_runs_dataframe(df: pd.DataFrame) -> pd.DataFrame:
 def display_random_test_results(random_results: dict, params: dict):
     """Display results from randomized tests."""
     st.header("Random Test Results (Medians)")
-    sorted_results = sorted(random_results.items(), key=lambda x: x[1]["final_value"], reverse=True)
+    st.caption(
+        "Each value is the median of that metric across all random runs (the 5–95% band shows its spread) — "
+        "a per-metric summary, **not** a single backtest, so the columns won't reconcile to one run. "
+        "Dollar figures are omitted here because they scale with each window's length; see Detailed Results for those."
+    )
+    sorted_results = sorted(random_results.items(), key=lambda x: x[1]["percentage_gain"], reverse=True)
 
     for asset, metrics in sorted_results:
         with st.expander(get_ticker_info(asset), expanded=True):
-            display_metrics_grid(metrics, prefix="Median ")
+            display_metrics_grid(metrics, prefix="Median ", keys=RATE_RISK_KEYS)
 
             p = metrics.get("percentiles")
             if p:
