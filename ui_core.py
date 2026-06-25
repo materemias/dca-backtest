@@ -1,5 +1,6 @@
 # Standard library imports
 from datetime import date
+from functools import lru_cache
 from typing import Dict, List, Tuple
 
 # Third-party imports
@@ -25,8 +26,9 @@ def initialize_session_state():
         st.session_state.multiselect_key = 0
 
 
+@lru_cache(maxsize=128)
 def get_ticker_info(ticker: str) -> str:
-    """Get formatted display name for a ticker."""
+    """Get formatted display name for a ticker (cached; yf.info is slow/rate-limited)."""
     try:
         info = yf.Ticker(ticker).info
         return f"{info.get('longName', ticker)} ({ticker})"

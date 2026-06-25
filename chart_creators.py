@@ -2,7 +2,8 @@ from typing import Tuple
 
 import pandas as pd
 import plotly.graph_objects as go
-import yfinance as yf
+
+from ui_core import get_ticker_info
 
 
 def create_comparison_charts(asset_data: dict, results: dict, params: dict) -> Tuple[go.Figure, go.Figure]:
@@ -16,12 +17,7 @@ def create_comparison_charts(asset_data: dict, results: dict, params: dict) -> T
         snapshots = results[asset]["snapshots"]
         color = color_map[asset]
 
-        # Try to get descriptive name
-        try:
-            info = yf.Ticker(asset).info
-            display_name = f"{info.get('longName', asset)} ({asset})"
-        except Exception:  # yf.info is flaky (empty/ratelimited → JSONDecodeError)
-            display_name = asset
+        display_name = get_ticker_info(asset)
 
         # Calculate running maximum value and drawdown for hover data
         running_max = snapshots["total_value"].expanding().max()
@@ -56,11 +52,7 @@ def create_comparison_charts(asset_data: dict, results: dict, params: dict) -> T
     }
 
     for asset, metrics in results.items():
-        try:
-            info = yf.Ticker(asset).info
-            display_name = f"{info.get('longName', asset)} ({asset})"
-        except Exception:  # yf.info is flaky (empty/ratelimited → JSONDecodeError)
-            display_name = asset
+        display_name = get_ticker_info(asset)
 
         performance_data["Asset"].append(asset)
         performance_data["Display_Name"].append(display_name)
@@ -89,7 +81,7 @@ def create_comparison_charts(asset_data: dict, results: dict, params: dict) -> T
 
 
 def create_price_chart(asset_data: dict, params: dict) -> go.Figure:
-    """Create a price chart showing prices as percentage of all-time high"""
+    """Create a price chart showing prices as percentage of the period high"""
     fig = go.Figure()
 
     for asset, df in asset_data.items():
@@ -97,17 +89,11 @@ def create_price_chart(asset_data: dict, params: dict) -> go.Figure:
         mask = (df["date"] >= params["start_date"]) & (df["date"] <= params["end_date"])
         df_filtered = df[mask]
 
-        # Calculate all-time high for the asset within the selected date range
-        all_time_high = df_filtered["Close"].max()
-        # Calculate percentage of ATH
-        normalized_prices = (df_filtered["Close"] / all_time_high) * 100
+        # Highest close within the selected date range (period high, not true ATH)
+        period_high = df_filtered["Close"].max()
+        normalized_prices = (df_filtered["Close"] / period_high) * 100
 
-        # Try to get descriptive name
-        try:
-            info = yf.Ticker(asset).info
-            display_name = f"{info.get('longName', asset)} ({asset})"
-        except Exception:  # yf.info is flaky (empty/ratelimited → JSONDecodeError)
-            display_name = asset
+        display_name = get_ticker_info(asset)
 
         # Add trace with customized hover template
         fig.add_trace(
@@ -116,13 +102,13 @@ def create_price_chart(asset_data: dict, params: dict) -> go.Figure:
                 y=normalized_prices,
                 name=display_name,
                 line=dict(color=params["color_map"][asset]),
-                hovertemplate=("<b>%{fullData.name}</b><br>" + "Date: %{x}<br>" + "Price: $%{customdata:,.2f}<br>" + "Percent of ATH: %{y:.1f}%<br>" + "<extra></extra>"),
+                hovertemplate=("<b>%{fullData.name}</b><br>" + "Date: %{x}<br>" + "Price: $%{customdata:,.2f}<br>" + "Percent of period high: %{y:.1f}%<br>" + "<extra></extra>"),
                 customdata=df_filtered["Close"],  # Add actual price data for hover
             )
         )
 
     fig.update_layout(
-        title="Price Performance (% of All-Time High)", xaxis_title="Date", yaxis_title="Percentage of All-Time High", hovermode="x unified", height=800, yaxis=dict(tickformat=".1f", ticksuffix="%")
+        title="Price Performance (% of Period High)", xaxis_title="Date", yaxis_title="Percentage of Period High", hovermode="x unified", height=800, yaxis=dict(tickformat=".1f", ticksuffix="%")
     )
 
     return fig

@@ -1,21 +1,12 @@
 import pandas as pd
 import streamlit as st
-import yfinance as yf
 
 from chart_creators import create_comparison_charts, create_price_chart
 from data_fetcher import fetch_historical_data
 from dca_analysis import run_randomized_tests
 from dca_core import calculate_multi_asset_dca
 from ui_controls import create_ui
-
-
-def get_asset_display_name(asset: str) -> str:
-    """Get formatted display name for an asset."""
-    try:
-        info = yf.Ticker(asset).info
-        return f"{info.get('longName', asset)} ({asset})"
-    except Exception:
-        return asset
+from ui_core import get_ticker_info
 
 
 def display_metrics_grid(metrics: dict, prefix: str = ""):
@@ -44,7 +35,7 @@ def display_detailed_results(results: dict):
     sorted_results = sorted(results.items(), key=lambda x: x[1]["final_value"], reverse=True)
 
     for asset, metrics in sorted_results:
-        with st.expander(get_asset_display_name(asset), expanded=True):
+        with st.expander(get_ticker_info(asset), expanded=True):
             display_metrics_grid(metrics)
 
 
@@ -68,12 +59,20 @@ def format_runs_dataframe(df: pd.DataFrame) -> pd.DataFrame:
 
 def display_random_test_results(random_results: dict, params: dict):
     """Display results from randomized tests."""
-    st.header("Random Test Results (Averages)")
+    st.header("Random Test Results (Medians)")
     sorted_results = sorted(random_results.items(), key=lambda x: x[1]["final_value"], reverse=True)
 
     for asset, metrics in sorted_results:
-        with st.expander(get_asset_display_name(asset), expanded=True):
-            display_metrics_grid(metrics, prefix="Avg ")
+        with st.expander(get_ticker_info(asset), expanded=True):
+            display_metrics_grid(metrics, prefix="Median ")
+
+            p = metrics.get("percentiles")
+            if p:
+                st.caption(
+                    f"5–95% range — DCA gain: {p['percentage_gain'][0]}% to {p['percentage_gain'][1]}% · "
+                    f"B&H gain: {p['buy_hold_gain'][0]}% to {p['buy_hold_gain'][1]}% · "
+                    f"Value max DD: {p['value_drawdown'][0]}% to {p['value_drawdown'][1]}%"
+                )
 
             if params["show_individual_runs"] and "all_runs" in metrics:
                 st.markdown("#### Individual Test Runs")
