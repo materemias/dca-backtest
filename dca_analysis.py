@@ -71,7 +71,7 @@ def run_randomized_tests(asset_data: Dict[str, pd.DataFrame], params: Dict, num_
             # plus a 5-95% range for the key return/risk metrics, and keep all runs.
             metric_keys = [k for k in metrics[0] if k not in ("start_date", "end_date")]
             agg = {k: round(float(np.median([m[k] for m in metrics])), 2) for k in metric_keys}
-            percentiles = {k: [round(float(np.percentile([m[k] for m in metrics], p)), 2) for p in (5, 95)] for k in ("percentage_gain", "buy_hold_gain", "value_drawdown")}
+            percentiles = {k: [round(float(np.percentile([m[k] for m in metrics], p)), 2) for p in (5, 95)] for k in metric_keys}
             results[asset] = agg | {"percentiles": percentiles, "all_runs": metrics}
 
     return results

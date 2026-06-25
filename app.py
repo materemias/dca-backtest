@@ -28,13 +28,19 @@ METRIC_SPECS = [
 RATE_RISK_KEYS = {"price_drawdown", "value_drawdown", "percentage_gain", "monthly_gain", "buy_hold_gain", "buy_hold_monthly"}
 
 
-def display_metrics_grid(metrics: dict, prefix: str = "", keys: set = None):
-    """Display metrics in a grid layout, optionally restricted to `keys`."""
+def display_metrics_grid(metrics: dict, prefix: str = "", keys: set = None, percentiles: dict = None):
+    """Display metrics in a grid layout, optionally restricted to `keys`.
+
+    If `percentiles` is given, show each metric's 5-95% range as a small caption beneath it.
+    """
     specs = [s for s in METRIC_SPECS if keys is None or s[1] in keys]
     cols = st.columns((len(specs) + 1) // 2)
     for i, (label, key, fmt, help_text) in enumerate(specs):
         with cols[i // 2]:
             st.metric(f"{prefix}{label}", fmt.format(metrics[key]), help=help_text)
+            if percentiles and key in percentiles:
+                lo, hi = percentiles[key]
+                st.caption(f"5–95%: {fmt.format(lo)} – {fmt.format(hi)}")
 
 
 def display_detailed_results(results: dict):
@@ -77,15 +83,7 @@ def display_random_test_results(random_results: dict, params: dict):
 
     for asset, metrics in sorted_results:
         with st.expander(get_ticker_info(asset), expanded=True):
-            display_metrics_grid(metrics, prefix="Median ", keys=RATE_RISK_KEYS)
-
-            p = metrics.get("percentiles")
-            if p:
-                st.caption(
-                    f"5–95% range — DCA gain: {p['percentage_gain'][0]}% to {p['percentage_gain'][1]}% · "
-                    f"B&H gain: {p['buy_hold_gain'][0]}% to {p['buy_hold_gain'][1]}% · "
-                    f"Value max DD: {p['value_drawdown'][0]}% to {p['value_drawdown'][1]}%"
-                )
+            display_metrics_grid(metrics, prefix="Median ", keys=RATE_RISK_KEYS, percentiles=metrics.get("percentiles"))
 
             if params["show_individual_runs"] and "all_runs" in metrics:
                 st.markdown("#### Individual Test Runs")
