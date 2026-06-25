@@ -27,8 +27,8 @@ METRIC_SPECS = [
     ("B&H % Gain", "buy_hold_gain", "{:,.2f}%", "Total return if the same total capital were invested as a lump sum at the start (Buy & Hold)." + _NOT_COMPARABLE),
     ("DCA Annualized (IRR)", "annual_gain", "{:,.2f}%", "Money-weighted annualized return (XIRR) — adjusts for how much capital was invested and when. This is the fair comparison vs B&H Annualized, regardless of differing capital intensity."),
     ("B&H Annualized (IRR)", "buy_hold_annual", "{:,.2f}%", "Annualized return of a lump sum invested at the start (CAGR = its IRR). Compare against DCA Annualized (IRR) for a capital-intensity-fair result."),
-    ("DCA Monthly", "monthly_gain", "{:,.2f}%", "DCA money-weighted return expressed per month (same basis as DCA Annualized)."),
-    ("B&H Monthly", "buy_hold_monthly", "{:,.2f}%", "Buy & Hold return expressed per month (same basis as B&H Annualized)."),
+    ("DCA Monthly (IRR)", "monthly_gain", "{:,.2f}%", "The same money-weighted IRR as DCA Annualized (IRR), expressed per month."),
+    ("B&H Monthly (IRR)", "buy_hold_monthly", "{:,.2f}%", "The same return as B&H Annualized (IRR) (CAGR), expressed per month."),
 ]
 
 # Rate/risk metrics are horizon-normalized, so a per-metric median across random windows is
