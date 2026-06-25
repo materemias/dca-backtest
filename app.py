@@ -41,7 +41,7 @@ def display_metrics_grid(metrics: dict, prefix: str = "", keys: set = None, perc
 
     If `percentiles` is given, show each metric's 5-95% range as a small caption beneath it.
     """
-    specs = [s for s in METRIC_SPECS if keys is None or s[1] in keys]
+    specs = [s for s in METRIC_SPECS if (keys is None or s[1] in keys) and s[1] in metrics]
     cols = st.columns((len(specs) + 1) // 2)
     for i, (label, key, fmt, help_text) in enumerate(specs):
         with cols[i // 2]:
