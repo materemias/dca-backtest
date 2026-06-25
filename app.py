@@ -9,7 +9,13 @@ from ui_controls import create_ui
 from ui_core import get_ticker_info
 
 
-# (label, key, format, help). Order also drives the column layout (2 metrics per column).
+# (label, key, format, help). Order also drives the column layout (2 metrics per column),
+# so DCA/B&H pairs are placed adjacently to share a column.
+_NOT_COMPARABLE = (
+    " ⚠ Not directly comparable to the matching DCA/B&H figure: Buy & Hold keeps the full sum "
+    "invested the whole period while DCA's capital ramps up. Use the Annualized (money-weighted) "
+    "rows for a fair, capital-intensity-adjusted comparison."
+)
 METRIC_SPECS = [
     ("Final Investment", "final_investment", "${:,.2f}", "Total cash contributed by the end date (initial investment plus every periodic buy)."),
     ("Total Units", "total_units", "{:,.2f}", "Total units (shares/coins) accumulated across all purchases."),
@@ -17,15 +23,17 @@ METRIC_SPECS = [
     ("Absolute Gain", "absolute_gain", "${:,.2f}", "Final Value minus Final Investment — profit or loss in dollars."),
     ("Price Max DD", "price_drawdown", "{:,.2f}%", "Largest peak-to-trough drop in the asset's price over the period (max drawdown)."),
     ("Value Max DD", "value_drawdown", "{:,.2f}%", "Largest peak-to-trough drop in your portfolio value over the period (max drawdown)."),
-    ("DCA % Gain", "percentage_gain", "{:,.2f}%", "Total return on contributed capital: Final Value / Final Investment − 1."),
-    ("DCA Monthly Gain", "monthly_gain", "{:,.2f}%", "Money-weighted (XIRR) return shown per month — accounts for when each contribution was actually made."),
-    ("B&H % Gain", "buy_hold_gain", "{:,.2f}%", "Total return if the same total capital were invested as a lump sum at the start (Buy & Hold)."),
-    ("B&H Monthly", "buy_hold_monthly", "{:,.2f}%", "Buy & Hold return shown per month (compounded CAGR)."),
+    ("DCA % Gain", "percentage_gain", "{:,.2f}%", "Total return on contributed capital: Final Value / Final Investment − 1." + _NOT_COMPARABLE),
+    ("B&H % Gain", "buy_hold_gain", "{:,.2f}%", "Total return if the same total capital were invested as a lump sum at the start (Buy & Hold)." + _NOT_COMPARABLE),
+    ("DCA Annualized", "annual_gain", "{:,.2f}%", "Money-weighted annual return (XIRR) — adjusts for how much capital was invested and when. This is the fair comparison vs B&H Annualized, regardless of differing capital intensity."),
+    ("B&H Annualized", "buy_hold_annual", "{:,.2f}%", "Annualized return of a lump sum invested at the start (CAGR = its money-weighted return). Compare against DCA Annualized for a capital-intensity-fair result."),
+    ("DCA Monthly", "monthly_gain", "{:,.2f}%", "DCA money-weighted return expressed per month (same basis as DCA Annualized)."),
+    ("B&H Monthly", "buy_hold_monthly", "{:,.2f}%", "Buy & Hold return expressed per month (same basis as B&H Annualized)."),
 ]
 
 # Rate/risk metrics are horizon-normalized, so a per-metric median across random windows is
 # meaningful. Dollar metrics depend on window length, so they're excluded from the random view.
-RATE_RISK_KEYS = {"price_drawdown", "value_drawdown", "percentage_gain", "monthly_gain", "buy_hold_gain", "buy_hold_monthly"}
+RATE_RISK_KEYS = {"price_drawdown", "value_drawdown", "percentage_gain", "buy_hold_gain", "annual_gain", "buy_hold_annual", "monthly_gain", "buy_hold_monthly"}
 
 
 def display_metrics_grid(metrics: dict, prefix: str = "", keys: set = None, percentiles: dict = None):
@@ -79,7 +87,7 @@ def display_random_test_results(random_results: dict, params: dict):
         "a per-metric summary, **not** a single backtest, so the columns won't reconcile to one run. "
         "Dollar figures are omitted here because they scale with each window's length; see Detailed Results for those."
     )
-    sorted_results = sorted(random_results.items(), key=lambda x: x[1]["percentage_gain"], reverse=True)
+    sorted_results = sorted(random_results.items(), key=lambda x: x[1]["annual_gain"], reverse=True)
 
     for asset, metrics in sorted_results:
         with st.expander(get_ticker_info(asset), expanded=True):

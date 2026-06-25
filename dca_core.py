@@ -19,12 +19,21 @@ def resample_price_data(df: pd.DataFrame, periodicity: str) -> pd.DataFrame:
     return resampled.ffill()
 
 
-def calculate_monthly_gain(final_value: float, initial_value: float, days_elapsed: float) -> float:
-    """Calculate monthly gain percentage."""
+def _compound_rate_pct(final_value: float, initial_value: float, days_elapsed: float, period_days: float) -> float:
+    """Compounded return per `period_days`-long period, as a percentage."""
     if initial_value == 0 or days_elapsed == 0:
         return 0.0
-    months = days_elapsed / 30.44
-    return round((((final_value / initial_value) ** (1 / months)) - 1) * 100, 2)
+    return round(((final_value / initial_value) ** (period_days / days_elapsed) - 1) * 100, 2)
+
+
+def calculate_monthly_gain(final_value: float, initial_value: float, days_elapsed: float) -> float:
+    """Compounded monthly return percentage (CAGR-style; correct for a lump sum)."""
+    return _compound_rate_pct(final_value, initial_value, days_elapsed, 30.44)
+
+
+def calculate_annual_gain(final_value: float, initial_value: float, days_elapsed: float) -> float:
+    """Compounded annual return percentage (CAGR; correct for a lump sum)."""
+    return _compound_rate_pct(final_value, initial_value, days_elapsed, 365.0)
 
 
 def xirr(cashflows, dates, days_in_year: float = 365.0) -> float:
@@ -82,11 +91,13 @@ _EMPTY_METRICS = {
     "absolute_gain": 0,
     "percentage_gain": 0,
     "monthly_gain": 0,
+    "annual_gain": 0,
     "total_units": 0,
     "price_drawdown": 0,
     "value_drawdown": 0,
     "buy_hold_gain": 0,
     "buy_hold_monthly": 0,
+    "buy_hold_annual": 0,
 }
 
 
@@ -119,19 +130,21 @@ def compute_dca_metrics(dates: np.ndarray, prices: np.ndarray, initial_investmen
     # already money-weighted and calculate_monthly_gain stays correct there.
     cashflows = -contributions.copy()
     cashflows[-1] += final_value
-    dca_monthly = _annual_to_monthly_pct(xirr(cashflows, dates))
+    annual_rate = xirr(cashflows, dates)  # money-weighted (XIRR), annualized
 
     metrics = {
         "final_investment": round(final_investment, 2),
         "final_value": round(final_value, 2),
         "absolute_gain": round(final_value - final_investment, 2),
         "percentage_gain": round((final_value / final_investment - 1) * 100, 2) if final_investment else 0.0,
-        "monthly_gain": dca_monthly,
+        "monthly_gain": _annual_to_monthly_pct(annual_rate),
+        "annual_gain": round(annual_rate * 100, 2),
         "total_units": round(float(units[-1]), 6),
         "price_drawdown": _max_drawdown_pct(prices),
         "value_drawdown": _max_drawdown_pct(values),
         "buy_hold_gain": round((buy_hold_value / final_investment - 1) * 100, 2) if final_investment else 0.0,
         "buy_hold_monthly": calculate_monthly_gain(buy_hold_value, final_investment, days_elapsed),
+        "buy_hold_annual": calculate_annual_gain(buy_hold_value, final_investment, days_elapsed),
     }
     if want_snapshots:
         metrics["snapshots"] = pd.DataFrame({"date": dates, "total_investment": investments, "total_value": values, "total_units": units, "price": prices})

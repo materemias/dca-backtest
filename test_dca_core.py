@@ -78,6 +78,9 @@ def test_dca_monthly_positive_on_uptrend():
     m = calculate_dca_metrics(df, 100, 100, "Monthly", date(2022, 12, 31))
     assert m["percentage_gain"] > 0
     assert m["monthly_gain"] > 0
+    assert m["annual_gain"] > 0
+    # Annual money-weighted rate should compound (roughly) to the monthly one.
+    assert abs((1 + m["annual_gain"] / 100) ** (1 / 12) - 1 - m["monthly_gain"] / 100) < 1e-3
 
 
 if __name__ == "__main__":
