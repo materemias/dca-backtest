@@ -13,20 +13,20 @@ def display_metrics_grid(metrics: dict, prefix: str = ""):
     """Display metrics in a grid layout."""
     col1, col2, col3, col4, col5 = st.columns(5)
     with col1:
-        st.metric(f"{prefix}Final Investment", f"${metrics['final_investment']:,.2f}")
-        st.metric(f"{prefix}Total Units", f"{metrics['total_units']:,.2f}")
+        st.metric(f"{prefix}Final Investment", f"${metrics['final_investment']:,.2f}", help="Total cash contributed by the end date (initial investment plus every periodic buy).")
+        st.metric(f"{prefix}Total Units", f"{metrics['total_units']:,.2f}", help="Total units (shares/coins) accumulated across all purchases.")
     with col2:
-        st.metric(f"{prefix}Final Value", f"${metrics['final_value']:,.2f}")
-        st.metric(f"{prefix}Absolute Gain", f"${metrics['absolute_gain']:,.2f}")
+        st.metric(f"{prefix}Final Value", f"${metrics['final_value']:,.2f}", help="Market value of all accumulated units at the end date.")
+        st.metric(f"{prefix}Absolute Gain", f"${metrics['absolute_gain']:,.2f}", help="Final Value minus Final Investment — profit or loss in dollars.")
     with col3:
-        st.metric(f"{prefix}Price Max DD", f"{metrics['price_drawdown']:,.2f}%")
-        st.metric(f"{prefix}Value Max DD", f"{metrics['value_drawdown']:,.2f}%")
+        st.metric(f"{prefix}Price Max DD", f"{metrics['price_drawdown']:,.2f}%", help="Largest peak-to-trough drop in the asset's price over the period (max drawdown).")
+        st.metric(f"{prefix}Value Max DD", f"{metrics['value_drawdown']:,.2f}%", help="Largest peak-to-trough drop in your portfolio value over the period (max drawdown).")
     with col4:
-        st.metric(f"{prefix}DCA % Gain", f"{metrics['percentage_gain']:,.2f}%")
-        st.metric(f"{prefix}DCA Monthly Gain", f"{metrics['monthly_gain']:,.2f}%")
+        st.metric(f"{prefix}DCA % Gain", f"{metrics['percentage_gain']:,.2f}%", help="Total return on contributed capital: Final Value / Final Investment − 1.")
+        st.metric(f"{prefix}DCA Monthly Gain", f"{metrics['monthly_gain']:,.2f}%", help="Money-weighted (XIRR) return shown per month — accounts for when each contribution was actually made.")
     with col5:
-        st.metric(f"{prefix}B&H % Gain", f"{metrics['buy_hold_gain']:,.2f}%")
-        st.metric(f"{prefix}B&H Monthly", f"{metrics['buy_hold_monthly']:,.2f}%")
+        st.metric(f"{prefix}B&H % Gain", f"{metrics['buy_hold_gain']:,.2f}%", help="Total return if the same total capital were invested as a lump sum at the start (Buy & Hold).")
+        st.metric(f"{prefix}B&H Monthly", f"{metrics['buy_hold_monthly']:,.2f}%", help="Buy & Hold return shown per month (compounded CAGR).")
 
 
 def display_detailed_results(results: dict):
